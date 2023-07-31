@@ -28,7 +28,7 @@ namespace Insta_DM_Bot_server_wpf
         private static ErrorCode errCode = ErrorCode.FreeWorker;
 
         private int _tryTimes;
-        private int SomethingWenWrongTimes;
+        private int SomethingWentWrongTimes;
         private bool _successful = true;
         private bool netDisconnected;
         private bool gotBanned;
@@ -175,70 +175,38 @@ dynamic jsonTargets, int waitTime, WorkerAssigned workerAssigned)
             Login:
             try
             {
-                _driver?.FindElement(By.XPath("/html/body/div[4]/div/div/button[2]")).Click();
+                _driver?.FindElement(By.XPath("//button[contains(.,'Allow all cookies')]")).Click();
             }
             catch (NoSuchElementException)
             {
-                //
+                //Not Important
             }
             catch (Exception e)
             {
                 Debug.Log(e.Message);
             }
-            Thread.Sleep(10000);
+            Thread.Sleep(5000);
             IWebElement? usernameInput;
             IWebElement? passwordInput;
             try
             {
                 usernameInput =
-                _driver?.FindElement(By.XPath("/html/body/div[1]/section/main/div/div/div[1]/div[2]/form/div/div[1]/div/label/input"));
+                _driver?.FindElement(By.Name("username"));
 
             }
             catch (NoSuchElementException)
             {
-                try
-                {
-                    usernameInput =
-                    _driver?.FindElement(By.XPath("/html/body/div[1]/section/main/article/div[2]/div[1]/div[2]/form/div/div[1]/div/label/input"));
-                }
-                catch
-                {
-                    try
-                    {
-                        usernameInput =
-                        _driver?.FindElement(By.XPath("/html/body/div[1]/div/div/section/main/div/div/div[1]/div[2]/form/div/div[1]/div/label/input"));
-                    }
-                    catch
-                    {
-                        return false;
-                    }
-                }
+                return false;
             }
             try
             {
                 passwordInput =
-                  _driver?.FindElement(By.XPath("/html/body/div[1]/section/main/div/div/div[1]/div[2]/form/div/div[2]/div/label/input"));
+                  _driver?.FindElement(By.Name("password"));
 
             }
             catch (NoSuchElementException)
             {
-                try
-                {
-                    passwordInput =
-                    _driver?.FindElement(By.XPath("/html/body/div[1]/section/main/article/div[2]/div[1]/div[2]/form/div/div[2]/div/label/input"));
-                }
-                catch
-                {
-                    try
-                    {
-                        passwordInput =
-                        _driver?.FindElement(By.XPath("/html/body/div[1]/div/div/section/main/div/div/div[1]/div[2]/form/div/div[2]/div/label/input"));
-                    }
-                    catch
-                    {
-                        return false;
-                    }
-                }
+                return false;
             }
 
             Thread.Sleep(2000);
@@ -251,26 +219,26 @@ dynamic jsonTargets, int waitTime, WorkerAssigned workerAssigned)
             Thread.Sleep(10000);
             try
             {
-               var errorText =  _driver?.FindElement(By.XPath("/html/body/div[1]/section/main/div/div/div[1]/div[2]/form/div[2]/p")).Text;
+               var errorText =  _driver?.FindElement(By.Id("#slfErrorAlert")).Text;
                Thread.Sleep(5000);
             if (errorText.Contains("username"))
-                {
-                    errCode = ErrorCode.UserProb;
-                }
+            {
+                errCode = ErrorCode.UserProb;
+            }
             else if (errorText.Contains("password"))
-                {
-                    errCode = ErrorCode.PassProb;
-                }
+            {
+                    errCode = ErrorCode.PassProb; 
+            }
             else if (errorText.Contains("connect") || errorText.Contains("problem"))
-                {
-                    errCode = ErrorCode.FreeWorker;
-                }
+            {
+                    errCode = ErrorCode.FreeWorker; 
+            }
             else if (errorText.Contains("terms"))
-                {
-                    Manager.BanUser(username, _jobId);
-                    gotBanned = true;
-                    return false;
-                }
+            {
+                Manager.BanUser(username, _jobId);
+                gotBanned = true;
+                return false;
+            }
 
             return false;
             }
@@ -290,32 +258,39 @@ dynamic jsonTargets, int waitTime, WorkerAssigned workerAssigned)
             {
                 //Nothing
             }
+            _driver?.FindElement(By.CssSelector(".xjqpnuy")).Click();
+            
+            // foreach (var xpath in Manager.xpaths.saveInfo)
+            // {
+            //     try
+            //     {
+            //         _driver?.FindElement(By.XPath(xpath)).Click();
+            //         Thread.Sleep(500);
+            //     }
+            //     catch
+            //     {
+            //         //ignored
+            //     }
+            // }
+            Thread.Sleep(5000);
 
-            foreach (var xpath in Manager.xpaths.saveInfo)
-            {
-                try
-                {
-                    _driver?.FindElement(By.XPath(xpath)).Click();
-                    Thread.Sleep(500);
-                }
-                catch
-                {
-                    //ignored
-                }
-            }
-            Thread.Sleep(10000);
-            foreach (var xpath in Manager.xpaths.notification)
-            {
-                try
-                {
-                    _driver?.FindElement(By.XPath(xpath)).Click();
-                    Thread.Sleep(500);
-                }
-                catch
-                {
-                    //ignored
-                }
-            }
+            _driver?.FindElement(By.CssSelector(@".\_a9_1")).Click();
+            Thread.Sleep(5000);
+            _driver?.FindElement(By.CssSelector(@".x1o5bo1o > .\_ab6-")).Click();
+
+                
+            // foreach (var xpath in Manager.xpaths.notification)
+            // {
+            //     try
+            //     {
+            //         _driver?.FindElement(By.XPath(xpath)).Click();
+            //         Thread.Sleep(500);
+            //     }
+            //     catch
+            //     {
+            //         //ignored
+            //     }
+            // }
         
             if (_driver.Url.Contains("challenge"))
             {
@@ -359,286 +334,294 @@ dynamic jsonTargets, int waitTime, WorkerAssigned workerAssigned)
             for (var i = 0; i < targets.Length; i++)
             {
                 ClickNewDirect:
-                foreach(var xpath in Manager.xpaths.newDirect)
-                {
-                    try
-                    {
-                        _driver?.FindElement(By.XPath(xpath)).Click();
-
-                        Thread.Sleep(500);
-                    }
-                    catch (WebDriverTimeoutException)
-                    {
-                        netDisconnected = true;
-
-                        if (Manager.TryTilGetConnection())
-                        {
-                            _driver?.Navigate().GoToUrl("https://www.instagram.com/direct/inbox");
-                            goto ClickNewDirect;
-                        }
-                        errCode = ErrorCode.Halfway;
-                        return false;
-                    }
-                    catch
-                    {
-                        //ignored
-                    }
-                }
-                var byPassTargetInput = false;
-                var failedTimes = 0;
-                try
-                {
-                     _driver?.FindElement(By.ClassName("_aaie  _aaid _aaiq")).SendKeys(targets[i]);
-                    byPassTargetInput = true;
-                }
-                catch
-                {
-                    //ignored
-                }
-                if (!byPassTargetInput)
-                {
-                    try
-                    {
-                        _driver?.FindElement(By.Name("queryBox")).SendKeys(targets[i]);
-                        byPassTargetInput = true;
-                    }
-                    catch
-                    {
-                        //ignored
-                    }
-                }
-                if (!byPassTargetInput)
-                {
-                    try
-                    {
-
-                        _driver?.FindElement(By.XPath("/html/body/div[5]/div/div/div[2]/div[1]/div/div[2]/input")).SendKeys(targets[i]);
-                        byPassTargetInput = true;
-                    }
-                    catch
-                    {
-                        //ignored
-                    }
-                }
-                if (!byPassTargetInput)
-                {
-                    try
-                    {
-                        _driver?.FindElement(By.XPath(
-          "/html/body/div[1]/div/div[1]/div/div[2]/div/div/div[1]/div/div[2]/div/div/div/div/div/div/div[2]/div[1]/div/div[2]/input")).SendKeys(targets[i]);
-                        byPassTargetInput = true;
-                    }
-                    catch
-                    {
-                        //ignored
-                    }
-                }
-
-                if (!byPassTargetInput)
-                {
-                    if (failedTimes >= 4)
-                    {
-                        Manager.FailedSending(_users[i], _username, _jobId);
-                        PrepareForSendDirects();
-                        continue;
-                    }
-                    else
-                    {
-                        failedTimes++;
-                        _driver?.Navigate().GoToUrl("https://www.instagram.com/direct/inbox");
-                        goto ClickNewDirect;
-                    }
-                }
-                    Thread.Sleep(10000);
-                var byPassSelecting = false;
-                try
-                {
-                    _driver?.FindElement(By.XPath("/html/body/div[5]/div/div/div[2]/div[2]/div[1]")).Click();
-                    Thread.Sleep(500);
-                    byPassSelecting = true;
-                }
-                catch (WebDriverTimeoutException)
-                {
-                    netDisconnected = true;
-                    if (Manager.TryTilGetConnection()) { 
-                        _driver?.Navigate().GoToUrl("https://www.instagram.com/direct/inbox");
-                        goto ClickNewDirect;
-                    }
-                    errCode = ErrorCode.Halfway;
-
-                    return false;
-                }
-                catch (NoSuchElementException) { //ignored
-                                                 }
-                catch (Exception)
-                {
-                    if (!Manager.IsConnectedToInternet())
-                    {
-                        netDisconnected = true;
-                        if (Manager.TryTilGetConnection()) { 
-                            _driver?.Navigate().GoToUrl("https://www.instagram.com/direct/inbox");
-                            goto ClickNewDirect;
-                        }
-                        errCode = ErrorCode.Halfway;
-                        return false;
-                    }
-                    Thread.Sleep(10000);
-                }
-                if (!byPassSelecting)
-                {
-                    try
-                    {
-                        _driver?.FindElement(By.XPath("/html/body/div[1]/div/div[1]/div/div[2]/div/div/div[1]/div/div[2]/div/div/div/div/div/div/div[2]/div[2]/div")).Click();
-                        Thread.Sleep(500);
-                        byPassSelecting = true;
-                    }
-                    catch (NoSuchElementException)
-                    {
-                        //ignored
-                    }
-                    catch (Exception)
-                    {
-                        if (!Manager.IsConnectedToInternet())
-                        {
-                            netDisconnected = true;
-                            if (Manager.TryTilGetConnection())
-                            {
-                                _driver?.Navigate().GoToUrl("https://www.instagram.com/direct/inbox");
-                                goto ClickNewDirect;
-                            }
-                            errCode = ErrorCode.Halfway;
-                            return false;
-                        }
-                        Thread.Sleep(10000);
-                    }
-                }
-                if (!byPassSelecting)
-                {
-                    try
-                    {
-                        _driver?.FindElement(By.XPath("/html/body/div[5]/div/div/div[2]/div[2]/div[1]/div/div[2]/div/div")).Click();
-                        Thread.Sleep(500);
-                        byPassSelecting = true;
-                    }
-                    catch (NoSuchElementException)
-                    {
-                        //ignored
-                    }
-                    catch (Exception)
-                    {
-                        if (!Manager.IsConnectedToInternet())
-                        {
-                            netDisconnected = true;
-                            if (Manager.TryTilGetConnection())
-                            {
-                                _driver?.Navigate().GoToUrl("https://www.instagram.com/direct/inbox");
-                                goto ClickNewDirect;
-                            }
-                            return false;
-                        }
-                        Thread.Sleep(10000);
-                    }
-                }
-                if (!byPassSelecting)
-                {
-                    try
-                    {
-
-                        _driver?.FindElement(By.XPath("/html/body/div[5]/div/div/div[2]/div[2]/div[1]")).Click();
-                        Thread.Sleep(500);
-                        byPassSelecting = true;
-                    }
-                    catch (NoSuchElementException)
-                    {
-                        //ignored
-                    }
-                    catch (Exception)
-                    {
-                        if (!Manager.IsConnectedToInternet())
-                        {
-                            netDisconnected = true;
-                            if (Manager.TryTilGetConnection())
-                            {
-                                _driver?.Navigate().GoToUrl("https://www.instagram.com/direct/inbox");
-                                goto ClickNewDirect;
-                            }
-                            return false;
-                        }
-                        Thread.Sleep(10000);
-                    }
-                }
-                if (!byPassSelecting)
-                {
-                    try
-                    {
-                        var buttom = RelativeBy.WithLocator(By.ClassName("-qQT3")).Below(By.ClassName("TGYkm"));
-                        _driver?.FindElement(buttom).Click();
-                        Thread.Sleep(500);
-                        byPassSelecting = true;
-                    }
-                    catch (NoSuchElementException)
-                    {
-                        //ignored
-                    }
-                    catch (Exception)
-                    {
-                        if (!Manager.IsConnectedToInternet())
-                        {
-                            netDisconnected = true;
-                            if (Manager.TryTilGetConnection())
-                            {
-                                _driver?.Navigate().GoToUrl("https://www.instagram.com/direct/inbox");
-                                goto ClickNewDirect;
-                            }
-                            return false;
-                        }
-                        Thread.Sleep(10000);
-                    }
-                }
-
-                var byPassNextButtom = false;
-                IWebElement? newDirectNextButtom;
-            ClickDirect:
-
-                    foreach (var xpath in Manager.xpaths.NextButtom)
-                    {
-                        try
-                        {
-                            _driver?.FindElement(By.XPath(xpath)).Click();
-                            byPassNextButtom = true;
-                            Thread.Sleep(500);
-                        }
-                        catch (WebDriverTimeoutException)
-                        {
-                            netDisconnected = true;
-
-                            if (Manager.TryTilGetConnection())
-                            {
-                                _driver?.Navigate().GoToUrl("https://www.instagram.com/direct/inbox");
-                                goto ClickNewDirect;
-                            }
-                            errCode = ErrorCode.Halfway;
-                            return false;
-                        }
-                        catch
-                        {
-                            //ignored
-                        }
-                    }
+                _driver?.FindElement(By.CssSelector(@"path:nth-child(3)")).Click();
                 
-                if (_tryTimes >= 6)
-                {
-                    Manager.FailedSending(_users[i], _username, _jobId);
-                    PrepareForSendDirects();
-                    continue;
-                }
-                if (!byPassNextButtom)
-                {
-                    _tryTimes++;
-                    Thread.Sleep(10000);
-                    goto ClickDirect;
-                }
-                _tryTimes = 0;
+                Thread.Sleep(500);
+                
+                // foreach(var xpath in Manager.xpaths.newDirect)
+                // {
+                //     try
+                //     {
+                //         _driver?.FindElement(By.XPath(xpath)).Click();
+                //
+                //         Thread.Sleep(500);
+                //     }
+                //     catch (WebDriverTimeoutException)
+                //     {
+                //         netDisconnected = true;
+                //
+                //         if (Manager.TryTilGetConnection())
+                //         {
+                //             _driver?.Navigate().GoToUrl("https://www.instagram.com/direct/inbox");
+                //             goto ClickNewDirect;
+                //         }
+                //         errCode = ErrorCode.Halfway;
+                //         return false;
+                //     }
+                //     catch
+                //     {
+                //         //ignored
+                //     }
+                // }
+                
+                _driver?.FindElement(By.Name("queryBox")).SendKeys(targets[i]);
+
+          //       try
+          //       {
+          //            _driver?.FindElement(By.Name("queryBox")).SendKeys(targets[i]);
+          //           byPassTargetInput = true;
+          //       }
+          //       catch
+          //       {
+          //           //ignored
+          //       }
+          //       if (!byPassTargetInput)
+          //       {
+          //           try
+          //           {
+          //               _driver?.FindElement(By.Name("queryBox")).SendKeys(targets[i]);
+          //               byPassTargetInput = true;
+          //           }
+          //           catch
+          //           {
+          //               //ignored
+          //           }
+          //       }
+          //       if (!byPassTargetInput)
+          //       {
+          //           try
+          //           {
+          //
+          //               _driver?.FindElement(By.XPath("/html/body/div[5]/div/div/div[2]/div[1]/div/div[2]/input")).SendKeys(targets[i]);
+          //               byPassTargetInput = true;
+          //           }
+          //           catch
+          //           {
+          //               //ignored
+          //           }
+          //       }
+          //       if (!byPassTargetInput)
+          //       {
+          //           try
+          //           {
+          //               _driver?.FindElement(By.XPath(
+          // "/html/body/div[1]/div/div[1]/div/div[2]/div/div/div[1]/div/div[2]/div/div/div/div/div/div/div[2]/div[1]/div/div[2]/input")).SendKeys(targets[i]);
+          //               byPassTargetInput = true;
+          //           }
+          //           catch
+          //           {
+          //               //ignored
+          //           }
+          //       }
+          //
+          //       if (!byPassTargetInput)
+          //       {
+          //           if (failedTimes >= 4)
+          //           {
+          //               Manager.FailedSending(_users[i], _username, _jobId);
+          //               PrepareForSendDirects();
+          //               continue;
+          //           }
+          //           else
+          //           {
+          //               failedTimes++;
+          //               _driver?.Navigate().GoToUrl("https://www.instagram.com/direct/inbox");
+          //               goto ClickNewDirect;
+          //           }
+          //       }
+                    Thread.Sleep(5000);
+                    _driver?.FindElement(By.CssSelector(@".x1n2onr6 > .x1cy8zhl")).Click();
+
+                // var byPassSelecting = false;
+                // try
+                // {
+                //     _driver?.FindElement(By.XPath("/html/body/div[5]/div/div/div[2]/div[2]/div[1]")).Click();
+                //     Thread.Sleep(500);
+                //     byPassSelecting = true;
+                // }
+                // catch (WebDriverTimeoutException)
+                // {
+                //     netDisconnected = true;
+                //     if (Manager.TryTilGetConnection()) { 
+                //         _driver?.Navigate().GoToUrl("https://www.instagram.com/direct/inbox");
+                //         goto ClickNewDirect;
+                //     }
+                //     errCode = ErrorCode.Halfway;
+                //
+                //     return false;
+                // }
+                // catch (NoSuchElementException) { //ignored
+                //                                  }
+                // catch (Exception)
+                // {
+                //     if (!Manager.IsConnectedToInternet())
+                //     {
+                //         netDisconnected = true;
+                //         if (Manager.TryTilGetConnection()) { 
+                //             _driver?.Navigate().GoToUrl("https://www.instagram.com/direct/inbox");
+                //             goto ClickNewDirect;
+                //         }
+                //         errCode = ErrorCode.Halfway;
+                //         return false;
+                //     }
+                //     Thread.Sleep(10000);
+                // }
+                // if (!byPassSelecting)
+                // {
+                //     try
+                //     {
+                //         _driver?.FindElement(By.XPath("/html/body/div[1]/div/div[1]/div/div[2]/div/div/div[1]/div/div[2]/div/div/div/div/div/div/div[2]/div[2]/div")).Click();
+                //         Thread.Sleep(500);
+                //         byPassSelecting = true;
+                //     }
+                //     catch (NoSuchElementException)
+                //     {
+                //         //ignored
+                //     }
+                //     catch (Exception)
+                //     {
+                //         if (!Manager.IsConnectedToInternet())
+                //         {
+                //             netDisconnected = true;
+                //             if (Manager.TryTilGetConnection())
+                //             {
+                //                 _driver?.Navigate().GoToUrl("https://www.instagram.com/direct/inbox");
+                //                 goto ClickNewDirect;
+                //             }
+                //             errCode = ErrorCode.Halfway;
+                //             return false;
+                //         }
+                //         Thread.Sleep(10000);
+                //     }
+                // }
+                // if (!byPassSelecting)
+                // {
+                //     try
+                //     {
+                //         _driver?.FindElement(By.XPath("/html/body/div[5]/div/div/div[2]/div[2]/div[1]/div/div[2]/div/div")).Click();
+                //         Thread.Sleep(500);
+                //         byPassSelecting = true;
+                //     }
+                //     catch (NoSuchElementException)
+                //     {
+                //         //ignored
+                //     }
+                //     catch (Exception)
+                //     {
+                //         if (!Manager.IsConnectedToInternet())
+                //         {
+                //             netDisconnected = true;
+                //             if (Manager.TryTilGetConnection())
+                //             {
+                //                 _driver?.Navigate().GoToUrl("https://www.instagram.com/direct/inbox");
+                //                 goto ClickNewDirect;
+                //             }
+                //             return false;
+                //         }
+                //         Thread.Sleep(10000);
+                //     }
+                // }
+                // if (!byPassSelecting)
+                // {
+                //     try
+                //     {
+                //
+                //         _driver?.FindElement(By.XPath("/html/body/div[5]/div/div/div[2]/div[2]/div[1]")).Click();
+                //         Thread.Sleep(500);
+                //         byPassSelecting = true;
+                //     }
+                //     catch (NoSuchElementException)
+                //     {
+                //         //ignored
+                //     }
+                //     catch (Exception)
+                //     {
+                //         if (!Manager.IsConnectedToInternet())
+                //         {
+                //             netDisconnected = true;
+                //             if (Manager.TryTilGetConnection())
+                //             {
+                //                 _driver?.Navigate().GoToUrl("https://www.instagram.com/direct/inbox");
+                //                 goto ClickNewDirect;
+                //             }
+                //             return false;
+                //         }
+                //         Thread.Sleep(10000);
+                //     }
+                // }
+                // if (!byPassSelecting)
+                // {
+                //     try
+                //     {
+                //         var buttom = RelativeBy.WithLocator(By.ClassName("-qQT3")).Below(By.ClassName("TGYkm"));
+                //         _driver?.FindElement(buttom).Click();
+                //         Thread.Sleep(500);
+                //         byPassSelecting = true;
+                //     }
+                //     catch (NoSuchElementException)
+                //     {
+                //         //ignored
+                //     }
+                //     catch (Exception)
+                //     {
+                //         if (!Manager.IsConnectedToInternet())
+                //         {
+                //             netDisconnected = true;
+                //             if (Manager.TryTilGetConnection())
+                //             {
+                //                 _driver?.Navigate().GoToUrl("https://www.instagram.com/direct/inbox");
+                //                 goto ClickNewDirect;
+                //             }
+                //             return false;
+                //         }
+                //         Thread.Sleep(10000);
+                //     }
+                // }
+                _driver?.FindElement(By.CssSelector(@".xn3w4p2")).Click();
+
+            //     var byPassNextButtom = false;
+            //     IWebElement? newDirectNextButtom;
+            // ClickDirect:
+            //
+            //         foreach (var xpath in Manager.xpaths.NextButtom)
+            //         {
+            //             try
+            //             {
+            //                 _driver?.FindElement(By.XPath(xpath)).Click();
+            //                 byPassNextButtom = true;
+            //                 Thread.Sleep(500);
+            //             }
+            //             catch (WebDriverTimeoutException)
+            //             {
+            //                 netDisconnected = true;
+            //
+            //                 if (Manager.TryTilGetConnection())
+            //                 {
+            //                     _driver?.Navigate().GoToUrl("https://www.instagram.com/direct/inbox");
+            //                     goto ClickNewDirect;
+            //                 }
+            //                 errCode = ErrorCode.Halfway;
+            //                 return false;
+            //             }
+            //             catch
+            //             {
+            //                 //ignored
+            //             }
+            //         }
+                
+                // if (_tryTimes >= 6)
+                // {
+                //     Manager.FailedSending(_users[i], _username, _jobId);
+                //     PrepareForSendDirects();
+                //     continue;
+                // }
+                // if (!byPassNextButtom)
+                // {
+                //     _tryTimes++;
+                //     Thread.Sleep(10000);
+                //     goto ClickDirect;
+                // }
+                // _tryTimes = 0;
                 Thread.Sleep(5000);
 
                 var random = new Random();
@@ -670,11 +653,11 @@ dynamic jsonTargets, int waitTime, WorkerAssigned workerAssigned)
                     catch
                     {
                         Debug.Log(e.Message);
-                        if (SomethingWenWrongTimes < 3)
+                        if (SomethingWentWrongTimes < 3)
                         {
                             Manager.FailedSending(_users[i], _username, _jobId);
                             PrepareForSendDirects();
-                            SomethingWenWrongTimes++;
+                            SomethingWentWrongTimes++;
                             continue;
                         }
                         else
@@ -684,8 +667,8 @@ dynamic jsonTargets, int waitTime, WorkerAssigned workerAssigned)
                         }
                     }
                 }
-                SomethingWenWrongTimes = 0;
-                textField?.SendKeys(message[random.Next(0, message.Count - 1)]);
+                SomethingWentWrongTimes = 0;
+                textField?.SendKeys(message[random.Next(0, message.Count)]);
                 Thread.Sleep(1000);
                 textField?.SendKeys(Keys.Enter);
 

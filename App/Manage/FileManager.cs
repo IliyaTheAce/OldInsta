@@ -35,6 +35,14 @@ namespace Insta_DM_Bot_server_wpf
         /// <returns>Returns a new instance of the object read from the binary file.</returns>
         public static T ReadFromBinaryFile<T>(string filePath)
         {
+            if (!Directory.Exists("./App/"))
+            {
+                Directory.CreateDirectory("./App/");
+            }
+            if (!File.Exists(filePath))
+            {
+                File.Create(filePath);
+            }
             using (Stream stream = File.Open(filePath, FileMode.Open))
             {
                 var binaryFormatter = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();

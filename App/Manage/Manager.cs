@@ -303,7 +303,7 @@ namespace Insta_DM_Bot_server_wpf
             }
             catch(Exception e)
             {
-                Console.WriteLine(e.InnerException.ToString());
+                Console.WriteLine(e.Message);
                 LoadXpaths();
             }
         }
