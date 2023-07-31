@@ -1,5 +1,17 @@
 ﻿using System;
+using System.Drawing;
 using System.IO;
+using System.Windows.Controls;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Timers;
+using System.Windows.Documents;
+using Color = System.Drawing.Color;
+using System.Collections.Generic;
+
 namespace Insta_DM_Bot_server_wpf
 {
     internal static class Debug
@@ -9,22 +21,20 @@ namespace Insta_DM_Bot_server_wpf
             var logText = "\n " + DateTime.Now + ": \n" + log;
             File.AppendAllText("./Log/Log.txt", logText);
         }
-        public static void CleanTempFolder()
+        public static void SendUser(string log, bool sentStatus)
         {
-            string tempFolderPath = Path.GetTempPath();
-            string[] tempFiles = Directory.GetFiles(tempFolderPath, "*.*", SearchOption.AllDirectories);
-            foreach (string file in tempFiles)
+            var logText = "\n " + DateTime.Now + ": \n" + log + " was sent " + (sentStatus ? "succsesfully" : "unsuccsesfully");
+            File.AppendAllText("./Log/Send.txt", logText);
+        }
+        public static void SendSuccsesfulUser(string worker , List<string> targets , string jobId)
+        {
+            var logText = "\n worker:" + worker + "     Job id:" + jobId;
+            foreach (var item in targets)
             {
-                try
-                {
-                    FileInfo currentFile = new FileInfo(file);
-                    currentFile.Delete();
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine("Error on file: {0}\r\n   {1}", file, ex.Message);
-                }
+                logText += "\n" + item;
             }
+            File.AppendAllText("./Log/SentSuccsesfully.txt", logText);
         }
     }
+    
 }

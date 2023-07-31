@@ -1,0 +1,138 @@
+﻿<Window
+                 xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                 xmlns:syncfusion="http://schemas.syncfusion.com/wpf"    
+                 xmlns:Themes="clr-namespace:Microsoft.Windows.Themes;assembly=PresentationFramework.Luna"
+     xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+     xmlns:av="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="av"
+     TextElement.Foreground="{DynamicResource MaterialDesignBody}"
+     TextElement.FontWeight="Regular"
+     TextElement.FontSize="13"
+     TextOptions.TextFormattingMode="Ideal"
+     TextOptions.TextRenderingMode="Auto"
+     Background="{DynamicResource MaterialDesignPaper}"
+     FontFamily="Montserrat ExtraLight"
+                x:Class="Insta_DM_Bot_server_wpf.TestWindows"
+                 Height="600"
+                 Width="822"  WindowStyle="None" ResizeMode="NoResize">
+    <Grid>
+        <Image  Source="/BG2.jpg" Stretch="Fill" Opacity="0.52" StretchDirection="DownOnly"/>
+        <DockPanel LastChildFill="False">
+            <Grid DockPanel.Dock="Top" Height="42" MouseDown="Rectangle_MouseDown" Background="#00000000" >
+                <StackPanel Orientation="Horizontal">
+                <Label Content="One 2" HorizontalAlignment="Left" VerticalAlignment="Top" FontSize="20" Foreground="#4CFFFFFF" Style="{DynamicResource MaterialDesignLabel}" Height="42" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Padding="0,0,0,0" Margin="14,0,0,0">
+                    <Label.Resources>
+                        <materialDesign:BundledTheme/>
+                    </Label.Resources>
+                </Label>
+                <Label Content="v1.1.6 SE" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#4CA9A9A9" Style="{DynamicResource MaterialDesignLabel}" Height="42" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Padding="0,4,0,0" Margin="5,0,0,0">
+                    <Label.Resources>
+                        <materialDesign:BundledTheme/>
+                    </Label.Resources>
+                </Label>
+                </StackPanel>
+                <WrapPanel  FlowDirection="RightToLeft" HorizontalAlignment="Stretch" VerticalAlignment="Center" Margin="10,0,10,0">
+                    <Button Height="20" ToolTip="Exit" Click="ExitApp" Panel.ZIndex="11" HorizontalAlignment="Right" VerticalAlignment="Stretch" Width="20" Margin="0,0,5,0" HorizontalContentAlignment="Right">
+                        <Button.Template>
+                            <ControlTemplate TargetType="{x:Type Button}">
+                                <Ellipse>
+                                    <Ellipse.Fill>
+                                        <ImageBrush ImageSource="/cross (1).png"/>
+                                    </Ellipse.Fill>
+                                </Ellipse>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+                    <Button  Height="20" ToolTip="Minimize" Click="MaxApp" Panel.ZIndex="11" Width="20" HorizontalAlignment="Right" Margin="0,0,5,0">
+                        <Button.Template>
+                            <ControlTemplate TargetType="{x:Type Button}">
+                                <Grid>
+                                    <Ellipse>
+                                        <Ellipse.Fill>
+                                            <ImageBrush ImageSource="/fullscreen 2.png"/>
+                                        </Ellipse.Fill>
+                                    </Ellipse>
+                                    <ContentPresenter Content="{TemplateBinding Content}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Grid>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+                    <Button  Height="20" ToolTip="Minimize" Click="MinApp" Panel.ZIndex="9" Width="20" HorizontalAlignment="Right" Margin="0,0,5,0">
+                        <Button.Template>
+                            <ControlTemplate TargetType="{x:Type Button}">
+                                <Grid>
+                                    <Ellipse>
+                                        <Ellipse.Fill>
+                                            <ImageBrush ImageSource="/minus-button.png"/>
+                                        </Ellipse.Fill>
+                                    </Ellipse>
+                                    <ContentPresenter Content="{TemplateBinding Content}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Grid>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+                </WrapPanel>
+            </Grid>
+
+
+            <Grid DockPanel.Dock="Bottom" Height="42">
+                <Grid  HorizontalAlignment="Stretch">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0"  HorizontalAlignment="Left" VerticalAlignment="Stretch" Orientation="Horizontal"  >
+                        <Label Content="Driver count:" Foreground="#3FFFFFFF" HorizontalContentAlignment="Left" VerticalContentAlignment="Center" Padding="16,4,8,4" Panel.ZIndex="5"/>
+                        <Button x:Name="Toggle1" Background="#FF434243" BorderBrush="{x:Null}" Foreground="#FF928D93" Content="1" Width="25" Height="24" HorizontalAlignment="Left" VerticalAlignment="Stretch" Click="Toggle1DriverCount" Style="{DynamicResource MaterialDesignOutlinedButton}" Padding="0,0,0,0" ScrollViewer.CanContentScroll="True" Margin="5,0,0,0" Panel.ZIndex="5"/>
+                        <Button x:Name="Toggle2" Background="#FF434243" BorderBrush="{x:Null}" Foreground="#FF928D93" Content="2" Width="25" Height="24" HorizontalAlignment="Left" VerticalAlignment="Stretch" Click="Toggle2DriverCount" Style="{DynamicResource MaterialDesignOutlinedButton}" Padding="0,0,0,0" ScrollViewer.CanContentScroll="True" Margin="5,0,0,0" Panel.ZIndex="5" IsEnabled="False"/>
+                        <Button x:Name="Toggle4" Background="#FF434243" BorderBrush="{x:Null}" Foreground="#FF928D93" Content="4" Width="25" Height="24" HorizontalAlignment="Left" Click="Toggle4DriverCount" Style="{DynamicResource MaterialDesignOutlinedButton}" Padding="0,0,0,0" ScrollViewer.CanContentScroll="True" Margin="5,0,0,0" Panel.ZIndex="5"/>
+                        <Button x:Name="Toggle6" Background="#FF434243" BorderBrush="{x:Null}" Foreground="#FF928D93" Content="6" Width="25" Height="24" HorizontalAlignment="Left" Click="Toggle6DriverCount" Style="{DynamicResource MaterialDesignOutlinedButton}" Padding="0,0,0,0" ScrollViewer.CanContentScroll="True" Margin="5,0,0,0" Panel.ZIndex="5"/>
+                        <Button x:Name="Toggle8" Background="#FF434243" BorderBrush="{x:Null}" Foreground="#FF928D93" Content="8" Width="25" Height="24" HorizontalAlignment="Left" Click="Toggle8DriverCount" Style="{DynamicResource MaterialDesignOutlinedButton}" Padding="0,0,0,0" ScrollViewer.CanContentScroll="True" Margin="5,0,0,0" Panel.ZIndex="5"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center" Orientation="Horizontal">
+                        <Label Content="Stop on finish:"  Foreground="#3FFFFFFF" Style="{DynamicResource MaterialDesignLabel}" DataContext="{DynamicResource Accent700Foreground}" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Panel.ZIndex="5"/>
+                        <ToggleButton HorizontalAlignment="Left" Height="27" VerticalAlignment="Top" Width="68" Background="#FFD93954" Foreground="#FFD93954" Click="PauseButtonClick" x:Name="Pause" Panel.ZIndex="5"/>
+
+                    </StackPanel>
+                    <StackPanel Grid.Column="2" HorizontalAlignment="Right" VerticalAlignment="Center" Orientation="Horizontal">
+                        <Ellipse HorizontalAlignment="Left" Height="30" VerticalAlignment="Top" Width="30"  ToolTip="Internet connection" Fill="#FF505050" x:Name="NetConnectionStatus" Margin="0,0,10,0" Panel.ZIndex="5">
+                            <Ellipse.Effect>
+                                <DropShadowEffect/>
+                            </Ellipse.Effect>
+                        </Ellipse>
+                        <Ellipse HorizontalAlignment="Left" Height="30" VerticalAlignment="Top" Width="30"  ToolTip="Server connection" Fill="#FF505050" x:Name="ServerConnectionStatus" Margin="0,0,10,0" Panel.ZIndex="5">
+                            <Ellipse.Effect>
+                                <DropShadowEffect/>
+                            </Ellipse.Effect>
+                        </Ellipse>
+                    </StackPanel>
+                    <StackPanel Grid.Column="2" HorizontalAlignment="Right" VerticalAlignment="Center" Orientation="Horizontal">
+                        <Image HorizontalAlignment="Left" Height="22" VerticalAlignment="Top" Width="22" Source="/App/Resources/InternetIcon.png" ToolTip="Internet connection" Margin="0,0,18,0"/>
+                        <Image HorizontalAlignment="Left" Height="22" VerticalAlignment="Top" Width="22" Source="/App/Resources/ServerIcon.png" ToolTip="Server connection" Margin="0,0,14,0"/>
+
+                    </StackPanel>
+                </Grid>
+            </Grid>
+
+        </DockPanel>
+        <Grid>
+            <Button x:Name="StartButtom" Click="Button_Click" Width="120" Height="120">
+                <Button.Template>
+                    <ControlTemplate TargetType="{x:Type Button}">
+                        <Grid>
+                            <Ellipse>
+                                <Ellipse.Fill>
+                                    <ImageBrush ImageSource="/App/Resources/logo2.png"/>
+                                </Ellipse.Fill>
+                            </Ellipse>
+                            <ContentPresenter Content="{TemplateBinding Content}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Grid>
+                    </ControlTemplate>
+                </Button.Template>
+            </Button>
+        </Grid>
+
+    </Grid>
+
+</Window>

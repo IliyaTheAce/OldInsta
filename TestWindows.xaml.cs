@@ -10,11 +10,12 @@ using System;
 namespace Insta_DM_Bot_server_wpf
 {
     /// <summary>
-    /// Interaction logic for MainWindow.xaml
+    /// Interaction logic for TestWindows.xaml
     /// </summary>
-    public partial class MainWindow 
+    public partial class TestWindows : Window
     {
-        public MainWindow()
+        
+        public TestWindows()
         {
             InitializeComponent();
             var connectionTimer = new System.Timers.Timer();
@@ -22,7 +23,25 @@ namespace Insta_DM_Bot_server_wpf
             connectionTimer.Elapsed += RefreshLog;
             connectionTimer.Interval = 30000;
             connectionTimer.Start();
+            Manager.UpdateXpaths();
         }
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+            var dialog = MessageBox.Show("Start Sending?", "Did you check everything?", MessageBoxButton.YesNo, MessageBoxImage.Question);
+            if (dialog == MessageBoxResult.No) return;
+            for (int i = 0; i < Manager.DriverCount; i++)
+            {
+                Manager.GetUserFromServer(true);
+            }
+            Thread.Sleep(5000);
+            Manager.StartSending(Manager.DriverCount);
+        }
+
+        public static void ShowMessage(string titile , string message , MessageBoxButton button , MessageBoxImage icon)
+        {
+            MessageBox.Show(titile, message, button, icon);
+        }
+
         private void CheckConnectionTick(object? source, ElapsedEventArgs? e)
         {
             Task.Run(() =>
@@ -38,7 +57,8 @@ namespace Insta_DM_Bot_server_wpf
                     NetConnectionStatus.Fill = new SolidColorBrush(Color.FromArgb(100, 0, 154, 59));
                 });
             }
-            else {
+            else
+            {
                 NetConnectionStatus.Dispatcher.Invoke(() => {
 
                     NetConnectionStatus.Fill = new SolidColorBrush(Color.FromArgb(100, 139, 0, 0));
@@ -70,19 +90,76 @@ namespace Insta_DM_Bot_server_wpf
         {
             this.WindowState = WindowState.Minimized;
         }
-
-        private void Button_Click(object sender, RoutedEventArgs e)
+        private void MaxApp(object sender, RoutedEventArgs e)
         {
-            var dialog = MessageBox.Show("Start Sending?", "Did you check everything?", MessageBoxButton.YesNo , MessageBoxImage.Question);
-            if (dialog == MessageBoxResult.No) return;
-            for (int i = 0; i < Manager.DriverCount; i++)
+           if(WindowState == WindowState.Maximized)
             {
-                Manager.GetUserFromServer(true);
+                WindowState = WindowState.Normal;
+                StartButtom.Width = 120;
+                StartButtom.Height = 120;
             }
-            Thread.Sleep(5000);
-            Manager.StartSending(Manager.DriverCount);
+            else if(WindowState == WindowState.Normal)
+            {
+                WindowState = WindowState.Maximized;
+                StartButtom.Width = 250;
+                StartButtom.Height = 250;
+            }
+
+
         }
-        
+
+        private void Rectangle_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            Console.WriteLine("Rect");
+            if (e.ChangedButton == MouseButton.Left)
+                DragMove();
+        }
+
+        private void Toggle1DriverCount(object sender, RoutedEventArgs e)
+        {
+            Toggle1.IsEnabled = false;
+            Toggle2.IsEnabled = true;
+            Toggle6.IsEnabled = true;
+            Toggle8.IsEnabled = true;
+            Toggle4.IsEnabled = true;
+            Manager.DriverCount = 1;
+        }
+        private void Toggle2DriverCount(object sender, RoutedEventArgs e)
+        {
+            Toggle1.IsEnabled = true;
+            Toggle2.IsEnabled = false;
+            Toggle6.IsEnabled = true;
+            Toggle8.IsEnabled = true;
+            Toggle4.IsEnabled = true;
+            Manager.DriverCount = 2;
+        }
+        private void Toggle6DriverCount(object sender, RoutedEventArgs e)
+        {
+            Toggle1.IsEnabled = true;
+            Toggle2.IsEnabled = true;
+            Toggle6.IsEnabled = false;
+            Toggle8.IsEnabled = true;
+            Toggle4.IsEnabled = true;
+            Manager.DriverCount = 6;
+        }
+        private void Toggle4DriverCount(object sender, RoutedEventArgs e)
+        {
+            Toggle1.IsEnabled = true;
+            Toggle2.IsEnabled = true;
+            Toggle6.IsEnabled = true;
+            Toggle8.IsEnabled = true;
+            Toggle4.IsEnabled = false;
+            Manager.DriverCount = 4;
+        }
+        private void Toggle8DriverCount(object sender, RoutedEventArgs e)
+        {
+            Toggle1.IsEnabled = true;
+            Toggle2.IsEnabled = true;
+            Toggle6.IsEnabled = true;
+            Toggle8.IsEnabled = false;
+            Toggle4.IsEnabled = true;
+            Manager.DriverCount = 8;
+        }
         private void PauseButtonClick(object sender, RoutedEventArgs e)
         {
 
@@ -96,47 +173,10 @@ namespace Insta_DM_Bot_server_wpf
             }
         }
 
-        private void Rectangle_MouseDown(object sender, MouseButtonEventArgs e)
+        private void RefreshLog(object sender, ElapsedEventArgs? e)
         {
-            if (e.ChangedButton == MouseButton.Left)
-                this.DragMove();
-        }
-
-        private void Toggle1DriverCount(object sender, RoutedEventArgs e)
-        {
-                    Toggle1.IsEnabled = false;
-                    Toggle2.IsEnabled = true;
-                    Toggle3.IsEnabled = true;
-                    Toggle4.IsEnabled = true;
-            Manager.DriverCount = 1;
-        }
-        private void Toggle2DriverCount(object sender, RoutedEventArgs e)
-        {
-            Toggle1.IsEnabled = true;
-            Toggle2.IsEnabled = false;
-            Toggle3.IsEnabled = true;
-            Toggle4.IsEnabled = true;
-            Manager.DriverCount = 2;
-        }
-        private void Toggle3DriverCount(object sender, RoutedEventArgs e)
-        {
-            Toggle1.IsEnabled = true;
-            Toggle2.IsEnabled = true;
-            Toggle3.IsEnabled = false;
-            Toggle4.IsEnabled = true;
-            Manager.DriverCount = 3;
-        }
-        private void Toggle4DriverCount(object sender, RoutedEventArgs e)
-        {
-            Toggle1.IsEnabled = true;
-            Toggle2.IsEnabled = true;
-            Toggle3.IsEnabled = true;
-            Toggle4.IsEnabled = false;
-            Manager.DriverCount = 4;
-        }
-        private void RefreshLog(object sender , ElapsedEventArgs? e)
-        {
-            LogTextBox.Dispatcher.Invoke(() =>
+            
+           /* LogTextBox.Dispatcher.Invoke(() =>
             {
                 LogTextBox.Document.Blocks.Clear();
                 var flow = new FlowDocument();
@@ -181,7 +221,7 @@ namespace Insta_DM_Bot_server_wpf
                 {
                     var para = new Paragraph();
                     var Worker4Header = new Run("W4_Online: " + Manager.worker4.Username + ": " + System.Environment.NewLine);
-                    var Worker4Line1 = new Run(Manager.worker4.User1 + ": " + System.Environment.NewLine+ Manager.worker4.User2);
+                    var Worker4Line1 = new Run(Manager.worker4.User1 + ": " + System.Environment.NewLine + Manager.worker4.User2);
 
                     Worker4Header.Foreground = new SolidColorBrush(Color.FromArgb(100, 96, 156, 224));
                     Worker4Line1.Foreground = new SolidColorBrush(Color.FromArgb(100, 65, 115, 171));
@@ -194,7 +234,8 @@ namespace Insta_DM_Bot_server_wpf
 
                 LogTextBox.Document = flow;
 
-            });
+            });*/
         }
+
     }
 }

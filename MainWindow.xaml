@@ -45,7 +45,7 @@
         <Label Content="Driver count:" Margin="10,557,721,13" Foreground="#3FFFFFFF" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
         <Label Content="Stop on finish:" Margin="305,563,411,10" Foreground="#3FFFFFFF" Style="{DynamicResource MaterialDesignLabel}" DataContext="{DynamicResource Accent700Foreground}" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
 
-        <ToggleButton HorizontalAlignment="Left" Height="27" VerticalAlignment="Top" Width="68" Margin="411,563,0,0" Background="#FFD93954" Foreground="#FFD93954" Click="Pause_Checked" x:Name="Pause" Checked="Pause_Checked"/>
+        <ToggleButton HorizontalAlignment="Left" Height="27" VerticalAlignment="Top" Width="68" Margin="411,563,0,0" Background="#FFD93954" Foreground="#FFD93954" Click="PauseButtonClick" x:Name="Pause"/>
         <Button Margin="792,10,10,570" Height="20" ToolTip="Exit" Click="ExitApp" Panel.ZIndex="3">
             <Button.Template>
                 <ControlTemplate TargetType="{x:Type Button}">
@@ -77,7 +77,7 @@
                 <materialDesign:BundledTheme/>
             </Label.Resources>
         </Label>
-        <Label HorizontalAlignment="Center" Margin="0,383,0,0" VerticalAlignment="Top" FontSize="20" Foreground="#FF39576D" Style="{DynamicResource MaterialDesignLabel}" Width="269" FontWeight="Normal" BorderBrush="White" Content="A window to infinity world">
+        <Label x:Name="UnderStartText" HorizontalAlignment="Center" Margin="0,383,0,0" VerticalAlignment="Top" FontSize="20" Foreground="#FF39576D" Style="{DynamicResource MaterialDesignLabel}" Width="269" FontWeight="Normal" BorderBrush="White" Content="A window to infinity world">
             <Label.Resources>
                 <materialDesign:BundledTheme/>
             </Label.Resources>
@@ -89,6 +89,12 @@
         <Button x:Name="Toggle2" Background="#FF434243" BorderBrush="{x:Null}" Foreground="#FF928D93" Content="2" Width="25" Height="24" Margin="131,560,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Click="Toggle2DriverCount" Style="{DynamicResource MaterialDesignOutlinedButton}" Padding="0,0,0,0" ScrollViewer.CanContentScroll="True"/>
         <Button x:Name="Toggle3" Background="#FF434243" BorderBrush="{x:Null}" Foreground="#FF928D93" Content="3" Width="25" Height="24" Margin="161,560,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Click="Toggle3DriverCount" Style="{DynamicResource MaterialDesignOutlinedButton}" Padding="0,0,0,0" ScrollViewer.CanContentScroll="True"/>
         <Button x:Name="Toggle4" Background="#FF434243" Foreground="#FF928D93" Content="4" Width="25" Height="24" Margin="191,560,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Click="Toggle4DriverCount" Style="{DynamicResource MaterialDesignOutlinedButton}" Padding="0,0,0,0" ScrollViewer.CanContentScroll="True" BorderBrush="{x:Null}"/>
+        <RichTextBox x:Name="LogTextBox" Margin="578,110,20,84" Background="{x:Null}" BorderBrush="{x:Null}" FontWeight="Normal" Focusable="False" >
+            <FlowDocument >
+
+            </FlowDocument>
+        </RichTextBox>
+
     </Grid>
 
 </Window>

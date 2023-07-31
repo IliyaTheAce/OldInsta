@@ -15,10 +15,16 @@
     <None Remove="App\Resources\Minimize.png" />
     <None Remove="BG2.jpg" />
     <None Remove="close.png" />
+    <None Remove="crop_5_4_FILL0_wght400_GRAD0_opsz48.png" />
+    <None Remove="cross %281%29.png" />
+    <None Remove="cross.png" />
+    <None Remove="fullscreen 2.png" />
+    <None Remove="fullscreen.png" />
     <None Remove="InternetIcon.png" />
     <None Remove="logo2.png" />
     <None Remove="logoEdited.png" />
     <None Remove="Minimize.png" />
+    <None Remove="minus-button.png" />
     <None Remove="ServerIcon" />
   </ItemGroup>
 
@@ -30,8 +36,8 @@
     <PackageReference Include="MaterialDesignColors" Version="2.0.6" />
     <PackageReference Include="MaterialDesignThemes" Version="4.5.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
-    <PackageReference Include="Selenium.WebDriver" Version="4.1.1" />
-    <PackageReference Include="Selenium.WebDriver.ChromeDriver" Version="101.0.4951.4100" />
+    <PackageReference Include="Selenium.WebDriver" Version="4.9.1" />
+    <PackageReference Include="Selenium.WebDriver.ChromeDriver" Version="114.0.5735.9000" />
   </ItemGroup>
 
   <ItemGroup>
@@ -43,6 +49,12 @@
     <Resource Include="App\Resources\logo2.png" />
     <Resource Include="App\Resources\ServerIcon.png" />
     <Resource Include="App\Resources\InternetIcon.png" />
+    <Resource Include="crop_5_4_FILL0_wght400_GRAD0_opsz48.png" />
+    <Resource Include="cross (1).png" />
+    <Resource Include="cross.png" />
+    <Resource Include="fullscreen 2.png" />
+    <Resource Include="fullscreen.png" />
+    <Resource Include="minus-button.png" />
   </ItemGroup>
 
 </Project>
