@@ -358,21 +358,60 @@ namespace Insta_DM_Bot_server_wpf
             {
                 ClickNewDirect:
                 //New Direct Button
-                _driver?.FindElement(By.XPath("/html/body/div[2]/div/div/div[2]/div/div/div/div[1]/div[1]/div[2]/section/div/div/div/div[1]/div/div[1]/div/div[1]/div")).Click();
-
+                try
+                {
+                    _driver?.FindElement(By.XPath("/html/body/div[2]/div/div/div[2]/div/div/div/div[1]/div[1]/div[2]/section/div/div/div/div[1]/div/div[1]/div/div[1]/div")).Click();
+                }
+                catch (Exception e)
+                {
+                    Manager.FailedSending(_users[i], _username, _jobId);
+                    PrepareForSendDirects();
+                    SomethingWentWrongTimes++;
+                    continue;
+                }
+                
                 Thread.Sleep(1000);
-
                 //Search bar
-                _driver?.FindElement(By.Name("queryBox")).SendKeys(targets[i]);
-
+                try
+                {
+                    _driver?.FindElement(By.Name("queryBox")).SendKeys(targets[i]);
+                }
+                catch (Exception e)
+                {
+                    Manager.FailedSending(_users[i], _username, _jobId);
+                    PrepareForSendDirects();
+                    SomethingWentWrongTimes++;
+                    continue;
+                }
+                
                 Thread.Sleep(5000);
-                //.x1cy8zhl css
-                _driver?.FindElement(By.CssSelector(@".x1i10hfl:nth-child(1) .x1lliihq > circle")).Click();
-
+                //Select first contact on list
+                try
+                {
+                    _driver?.FindElement(By.CssSelector(@".x1i10hfl:nth-child(1) .x1lliihq > circle")).Click();
+                }
+                catch (Exception e)
+                {
+                    Manager.FailedSending(_users[i], _username, _jobId);
+                    PrepareForSendDirects();
+                    SomethingWentWrongTimes++;
+                    continue;
+                }
+                
                 Thread.Sleep(1000);
 
-                //.xt0psk2 css
-                _driver?.FindElement(By.CssSelector(@".xn3w4p2")).Click();
+                //Chat button
+                try
+                {
+                    _driver?.FindElement(By.CssSelector(@".xn3w4p2")).Click();
+                }
+                catch (Exception e)
+                {
+                    Manager.FailedSending(_users[i], _username, _jobId);
+                    PrepareForSendDirects();
+                    SomethingWentWrongTimes++;
+                    continue;
+                }
 
                 Thread.Sleep(5000);
 
