@@ -2,13 +2,13 @@
 using OpenQA.Selenium.Chrome;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Threading;
 using System.Timers;
 using Timer = System.Timers.Timer;
 
 namespace Insta_DM_Bot_server_wpf
 {
-
     internal class User : ICommand
     {
         private ChromeDriver? _driver;
@@ -36,7 +36,7 @@ namespace Insta_DM_Bot_server_wpf
 
 
         public User(int jobId, string username, string password, List<string> targets, List<string?> messages,
-dynamic jsonTargets, int waitTime, WorkerAssigned workerAssigned)
+            dynamic jsonTargets, int waitTime, WorkerAssigned workerAssigned)
         {
             _username = username;
             _password = password;
@@ -48,38 +48,46 @@ dynamic jsonTargets, int waitTime, WorkerAssigned workerAssigned)
             WorkerAssigned = workerAssigned;
             switch (WorkerAssigned)
             {
-                case WorkerAssigned.Worker1: Worker = Manager.worker1; break;
-                case WorkerAssigned.Worker2: Worker = Manager.worker2; break;
-                case WorkerAssigned.Worker3: Worker = Manager.worker3; break;
-                case WorkerAssigned.Worker4: Worker = Manager.worker4; break;
+                case WorkerAssigned.Worker1:
+                    Worker = Manager.worker1;
+                    break;
+                case WorkerAssigned.Worker2:
+                    Worker = Manager.worker2;
+                    break;
+                case WorkerAssigned.Worker3:
+                    Worker = Manager.worker3;
+                    break;
+                case WorkerAssigned.Worker4:
+                    Worker = Manager.worker4;
+                    break;
             }
         }
-
 
 
         //Timer stuff
         private Timer _timer;
         const float TimerInterval = 9;
         private bool hasSuccsesfulDirect = false;
+
         private void TimerInitialize()
         {
-            if(_timer != null) _timer.Dispose();
+            if (_timer != null) _timer.Dispose();
             _timer = new Timer(9 * 60000);
             _timer.Elapsed += TimerElapsed;
             _timer.Enabled = true;
             _timer.AutoReset = true;
-
         }
 
-        private void TimerElapsed(object sender , ElapsedEventArgs args)
+        private void TimerElapsed(object sender, ElapsedEventArgs args)
         {
-            if(isDead) return;
-            if(gotBanned)
+            if (isDead) return;
+            if (gotBanned)
             {
                 _timer.Stop();
                 _timer.Dispose();
                 return;
             }
+
             if (!hasSuccsesfulDirect && !netDisconnected)
             {
                 isDead = true;
@@ -88,6 +96,7 @@ dynamic jsonTargets, int waitTime, WorkerAssigned workerAssigned)
                 StartNewDriver();
                 errCode = ErrorCode.Timer;
             }
+
             hasSuccsesfulDirect = false;
             if (!Manager.IsConnectedToInternet())
             {
@@ -99,20 +108,22 @@ dynamic jsonTargets, int waitTime, WorkerAssigned workerAssigned)
         {
             Thread.Sleep(_waitTime);
             _driver = new ChromeDriver();
-            _driver.Manage().Window.Maximize();
+            _driver.Manage().Window.Size = new Size(516, 703);
             TimerInitialize();
             if (!SignIn(_username, _password))
             {
                 StartNewDriver();
                 return false;
             }
-            if (isDead) return false ;
+
+            if (isDead) return false;
             Worker.Username = _username;
             if (!PrepareForSendDirects())
             {
                 StartNewDriver();
                 return false;
             }
+
             if (isDead) return false;
 
             if (!SendMessage(_users.ToArray(), _messages))
@@ -120,6 +131,7 @@ dynamic jsonTargets, int waitTime, WorkerAssigned workerAssigned)
                 StartNewDriver();
                 return false;
             }
+
             if (isDead) return false;
 
             Manager.DestroyWorker(WorkerAssigned);
@@ -135,6 +147,7 @@ dynamic jsonTargets, int waitTime, WorkerAssigned workerAssigned)
             {
                 Manager.Queue.Dequeue().Execute();
             }
+
             return _successful;
         }
 
@@ -142,20 +155,20 @@ dynamic jsonTargets, int waitTime, WorkerAssigned workerAssigned)
         {
             _driver?.Quit();
             if (!gotBanned)
-                Manager.CancelWorker(_targets , _username, _password, _jobId.ToString(), WorkerAssigned, errCode);
+                Manager.CancelWorker(_targets, _username, _password, _jobId.ToString(), WorkerAssigned, errCode);
             isDead = true;
             Manager.DestroyWorker(WorkerAssigned);
             if (Manager.IsPaused) return;
             Thread.Sleep(2000);
             Manager.GetUserFromServer(true);
-            Thread.Sleep(10000);
+            Thread.Sleep(5000);
             Manager.StartSending(1);
         }
 
 
         private bool SignIn(string username, string password)
         {
-        SignIn:
+            SignIn:
             try
             {
                 _driver?.Navigate().GoToUrl("https://www.instagram.com/accounts/login/");
@@ -171,8 +184,11 @@ dynamic jsonTargets, int waitTime, WorkerAssigned workerAssigned)
 
                 return false;
             }
-            
+
+            Thread.Sleep(5000);
             Login:
+
+            //Allow Cookies Button 
             try
             {
                 _driver?.FindElement(By.XPath("//button[contains(.,'Allow all cookies')]")).Click();
@@ -185,24 +201,24 @@ dynamic jsonTargets, int waitTime, WorkerAssigned workerAssigned)
             {
                 Debug.Log(e.Message);
             }
+
             Thread.Sleep(5000);
             IWebElement? usernameInput;
             IWebElement? passwordInput;
             try
             {
                 usernameInput =
-                _driver?.FindElement(By.Name("username"));
-
+                    _driver?.FindElement(By.Name("username"));
             }
             catch (NoSuchElementException)
             {
                 return false;
             }
+
             try
             {
                 passwordInput =
-                  _driver?.FindElement(By.Name("password"));
-
+                    _driver?.FindElement(By.Name("password"));
             }
             catch (NoSuchElementException)
             {
@@ -214,33 +230,31 @@ dynamic jsonTargets, int waitTime, WorkerAssigned workerAssigned)
             passwordInput?.SendKeys(password);
             Thread.Sleep(1000);
             passwordInput?.Submit();
-            Thread.Sleep(10000);
-
-            Thread.Sleep(10000);
+            Thread.Sleep(5000);
             try
             {
-               var errorText =  _driver?.FindElement(By.Id("#slfErrorAlert")).Text;
-               Thread.Sleep(5000);
-            if (errorText.Contains("username"))
-            {
-                errCode = ErrorCode.UserProb;
-            }
-            else if (errorText.Contains("password"))
-            {
-                    errCode = ErrorCode.PassProb; 
-            }
-            else if (errorText.Contains("connect") || errorText.Contains("problem"))
-            {
-                    errCode = ErrorCode.FreeWorker; 
-            }
-            else if (errorText.Contains("terms"))
-            {
-                Manager.BanUser(username, _jobId);
-                gotBanned = true;
-                return false;
-            }
+                var errorText = _driver?.FindElement(By.Id("slfErrorAlert")).Text;
+                Thread.Sleep(5000);
+                if (errorText.Contains("username"))
+                {
+                    errCode = ErrorCode.UserProb;
+                }
+                else if (errorText.Contains("password"))
+                {
+                    errCode = ErrorCode.PassProb;
+                }
+                else if (errorText.Contains("connect") || errorText.Contains("problem"))
+                {
+                    errCode = ErrorCode.FreeWorker;
+                }
+                else if (errorText.Contains("terms"))
+                {
+                    Manager.BanUser(username, _jobId);
+                    gotBanned = true;
+                    return false;
+                }
 
-            return false;
+                return false;
             }
             catch (WebDriverTimeoutException)
             {
@@ -258,64 +272,64 @@ dynamic jsonTargets, int waitTime, WorkerAssigned workerAssigned)
             {
                 //Nothing
             }
-            _driver?.FindElement(By.CssSelector(".xjqpnuy")).Click();
+
+
+            //Not Now Button
+            try
+            {
+                _driver?.FindElement(By.CssSelector(".xjqpnuy")).Click();
+            }
+            catch (NoSuchElementException)
+            {
+                //Not Important
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
+
+            Thread.Sleep(5000);
+//Notification Not now button
+            try
+            {
+                _driver?.FindElement(By.XPath("//button[contains(.,'Not Now')]")).Click();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
+            Thread.Sleep(5000);
+            // Inbox button -> 
+            // _driver?.FindElement(By.CssSelector(@".x1o5bo1o > .\_ab6-")).Click();
             
-            // foreach (var xpath in Manager.xpaths.saveInfo)
-            // {
-            //     try
-            //     {
-            //         _driver?.FindElement(By.XPath(xpath)).Click();
-            //         Thread.Sleep(500);
-            //     }
-            //     catch
-            //     {
-            //         //ignored
-            //     }
-            // }
-            Thread.Sleep(5000);
-
-            _driver?.FindElement(By.CssSelector(@".\_a9_1")).Click();
-            Thread.Sleep(5000);
-            _driver?.FindElement(By.CssSelector(@".x1o5bo1o > .\_ab6-")).Click();
-
-                
-            // foreach (var xpath in Manager.xpaths.notification)
-            // {
-            //     try
-            //     {
-            //         _driver?.FindElement(By.XPath(xpath)).Click();
-            //         Thread.Sleep(500);
-            //     }
-            //     catch
-            //     {
-            //         //ignored
-            //     }
-            // }
-        
             if (_driver.Url.Contains("challenge"))
             {
                 Manager.BanUser(username, _jobId);
                 gotBanned = true;
                 return false;
             }
+
             return true;
         }
 
         private bool PrepareForSendDirects()
         {
             Prepare:
-            Thread.Sleep(10000);
+            Thread.Sleep(5000);
             if (!Manager.IsConnectedToInternet())
             {
                 netDisconnected = true;
 
-                if (Manager.TryTilGetConnection()) { 
+                if (Manager.TryTilGetConnection())
+                {
                     _driver?.Navigate().Refresh();
                     goto Prepare;
                 }
+
                 errCode = ErrorCode.FreeWorker;
                 return false;
             }
+
             try
             {
                 _driver?.Navigate().GoToUrl("https://www.instagram.com/direct/inbox");
@@ -324,314 +338,52 @@ dynamic jsonTargets, int waitTime, WorkerAssigned workerAssigned)
             {
                 goto Prepare;
             }
-            Thread.Sleep(10000);
+
+            Thread.Sleep(5000);
             return true;
         }
 
         private bool SendMessage(string[] targets, List<string?> message)
         {
-
+            try
+            {
+                _driver?.FindElement(By.XPath("//button[contains(.,'Not Now')]")).Click();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
+            Thread.Sleep(5000);
             for (var i = 0; i < targets.Length; i++)
             {
                 ClickNewDirect:
-                _driver?.FindElement(By.CssSelector(@"path:nth-child(3)")).Click();
-                
-                Thread.Sleep(500);
-                
-                // foreach(var xpath in Manager.xpaths.newDirect)
-                // {
-                //     try
-                //     {
-                //         _driver?.FindElement(By.XPath(xpath)).Click();
-                //
-                //         Thread.Sleep(500);
-                //     }
-                //     catch (WebDriverTimeoutException)
-                //     {
-                //         netDisconnected = true;
-                //
-                //         if (Manager.TryTilGetConnection())
-                //         {
-                //             _driver?.Navigate().GoToUrl("https://www.instagram.com/direct/inbox");
-                //             goto ClickNewDirect;
-                //         }
-                //         errCode = ErrorCode.Halfway;
-                //         return false;
-                //     }
-                //     catch
-                //     {
-                //         //ignored
-                //     }
-                // }
-                
+                //New Direct Button
+                _driver?.FindElement(By.XPath("/html/body/div[2]/div/div/div[2]/div/div/div/div[1]/div[1]/div[2]/section/div/div/div/div[1]/div/div[1]/div/div[1]/div")).Click();
+
+                Thread.Sleep(1000);
+
+                //Search bar
                 _driver?.FindElement(By.Name("queryBox")).SendKeys(targets[i]);
 
-          //       try
-          //       {
-          //            _driver?.FindElement(By.Name("queryBox")).SendKeys(targets[i]);
-          //           byPassTargetInput = true;
-          //       }
-          //       catch
-          //       {
-          //           //ignored
-          //       }
-          //       if (!byPassTargetInput)
-          //       {
-          //           try
-          //           {
-          //               _driver?.FindElement(By.Name("queryBox")).SendKeys(targets[i]);
-          //               byPassTargetInput = true;
-          //           }
-          //           catch
-          //           {
-          //               //ignored
-          //           }
-          //       }
-          //       if (!byPassTargetInput)
-          //       {
-          //           try
-          //           {
-          //
-          //               _driver?.FindElement(By.XPath("/html/body/div[5]/div/div/div[2]/div[1]/div/div[2]/input")).SendKeys(targets[i]);
-          //               byPassTargetInput = true;
-          //           }
-          //           catch
-          //           {
-          //               //ignored
-          //           }
-          //       }
-          //       if (!byPassTargetInput)
-          //       {
-          //           try
-          //           {
-          //               _driver?.FindElement(By.XPath(
-          // "/html/body/div[1]/div/div[1]/div/div[2]/div/div/div[1]/div/div[2]/div/div/div/div/div/div/div[2]/div[1]/div/div[2]/input")).SendKeys(targets[i]);
-          //               byPassTargetInput = true;
-          //           }
-          //           catch
-          //           {
-          //               //ignored
-          //           }
-          //       }
-          //
-          //       if (!byPassTargetInput)
-          //       {
-          //           if (failedTimes >= 4)
-          //           {
-          //               Manager.FailedSending(_users[i], _username, _jobId);
-          //               PrepareForSendDirects();
-          //               continue;
-          //           }
-          //           else
-          //           {
-          //               failedTimes++;
-          //               _driver?.Navigate().GoToUrl("https://www.instagram.com/direct/inbox");
-          //               goto ClickNewDirect;
-          //           }
-          //       }
-                    Thread.Sleep(5000);
-                    _driver?.FindElement(By.CssSelector(@".x1n2onr6 > .x1cy8zhl")).Click();
+                Thread.Sleep(5000);
+                //.x1cy8zhl css
+                _driver?.FindElement(By.CssSelector(@".x1i10hfl:nth-child(1) .x1lliihq > circle")).Click();
 
-                // var byPassSelecting = false;
-                // try
-                // {
-                //     _driver?.FindElement(By.XPath("/html/body/div[5]/div/div/div[2]/div[2]/div[1]")).Click();
-                //     Thread.Sleep(500);
-                //     byPassSelecting = true;
-                // }
-                // catch (WebDriverTimeoutException)
-                // {
-                //     netDisconnected = true;
-                //     if (Manager.TryTilGetConnection()) { 
-                //         _driver?.Navigate().GoToUrl("https://www.instagram.com/direct/inbox");
-                //         goto ClickNewDirect;
-                //     }
-                //     errCode = ErrorCode.Halfway;
-                //
-                //     return false;
-                // }
-                // catch (NoSuchElementException) { //ignored
-                //                                  }
-                // catch (Exception)
-                // {
-                //     if (!Manager.IsConnectedToInternet())
-                //     {
-                //         netDisconnected = true;
-                //         if (Manager.TryTilGetConnection()) { 
-                //             _driver?.Navigate().GoToUrl("https://www.instagram.com/direct/inbox");
-                //             goto ClickNewDirect;
-                //         }
-                //         errCode = ErrorCode.Halfway;
-                //         return false;
-                //     }
-                //     Thread.Sleep(10000);
-                // }
-                // if (!byPassSelecting)
-                // {
-                //     try
-                //     {
-                //         _driver?.FindElement(By.XPath("/html/body/div[1]/div/div[1]/div/div[2]/div/div/div[1]/div/div[2]/div/div/div/div/div/div/div[2]/div[2]/div")).Click();
-                //         Thread.Sleep(500);
-                //         byPassSelecting = true;
-                //     }
-                //     catch (NoSuchElementException)
-                //     {
-                //         //ignored
-                //     }
-                //     catch (Exception)
-                //     {
-                //         if (!Manager.IsConnectedToInternet())
-                //         {
-                //             netDisconnected = true;
-                //             if (Manager.TryTilGetConnection())
-                //             {
-                //                 _driver?.Navigate().GoToUrl("https://www.instagram.com/direct/inbox");
-                //                 goto ClickNewDirect;
-                //             }
-                //             errCode = ErrorCode.Halfway;
-                //             return false;
-                //         }
-                //         Thread.Sleep(10000);
-                //     }
-                // }
-                // if (!byPassSelecting)
-                // {
-                //     try
-                //     {
-                //         _driver?.FindElement(By.XPath("/html/body/div[5]/div/div/div[2]/div[2]/div[1]/div/div[2]/div/div")).Click();
-                //         Thread.Sleep(500);
-                //         byPassSelecting = true;
-                //     }
-                //     catch (NoSuchElementException)
-                //     {
-                //         //ignored
-                //     }
-                //     catch (Exception)
-                //     {
-                //         if (!Manager.IsConnectedToInternet())
-                //         {
-                //             netDisconnected = true;
-                //             if (Manager.TryTilGetConnection())
-                //             {
-                //                 _driver?.Navigate().GoToUrl("https://www.instagram.com/direct/inbox");
-                //                 goto ClickNewDirect;
-                //             }
-                //             return false;
-                //         }
-                //         Thread.Sleep(10000);
-                //     }
-                // }
-                // if (!byPassSelecting)
-                // {
-                //     try
-                //     {
-                //
-                //         _driver?.FindElement(By.XPath("/html/body/div[5]/div/div/div[2]/div[2]/div[1]")).Click();
-                //         Thread.Sleep(500);
-                //         byPassSelecting = true;
-                //     }
-                //     catch (NoSuchElementException)
-                //     {
-                //         //ignored
-                //     }
-                //     catch (Exception)
-                //     {
-                //         if (!Manager.IsConnectedToInternet())
-                //         {
-                //             netDisconnected = true;
-                //             if (Manager.TryTilGetConnection())
-                //             {
-                //                 _driver?.Navigate().GoToUrl("https://www.instagram.com/direct/inbox");
-                //                 goto ClickNewDirect;
-                //             }
-                //             return false;
-                //         }
-                //         Thread.Sleep(10000);
-                //     }
-                // }
-                // if (!byPassSelecting)
-                // {
-                //     try
-                //     {
-                //         var buttom = RelativeBy.WithLocator(By.ClassName("-qQT3")).Below(By.ClassName("TGYkm"));
-                //         _driver?.FindElement(buttom).Click();
-                //         Thread.Sleep(500);
-                //         byPassSelecting = true;
-                //     }
-                //     catch (NoSuchElementException)
-                //     {
-                //         //ignored
-                //     }
-                //     catch (Exception)
-                //     {
-                //         if (!Manager.IsConnectedToInternet())
-                //         {
-                //             netDisconnected = true;
-                //             if (Manager.TryTilGetConnection())
-                //             {
-                //                 _driver?.Navigate().GoToUrl("https://www.instagram.com/direct/inbox");
-                //                 goto ClickNewDirect;
-                //             }
-                //             return false;
-                //         }
-                //         Thread.Sleep(10000);
-                //     }
-                // }
+                Thread.Sleep(1000);
+
+                //.xt0psk2 css
                 _driver?.FindElement(By.CssSelector(@".xn3w4p2")).Click();
 
-            //     var byPassNextButtom = false;
-            //     IWebElement? newDirectNextButtom;
-            // ClickDirect:
-            //
-            //         foreach (var xpath in Manager.xpaths.NextButtom)
-            //         {
-            //             try
-            //             {
-            //                 _driver?.FindElement(By.XPath(xpath)).Click();
-            //                 byPassNextButtom = true;
-            //                 Thread.Sleep(500);
-            //             }
-            //             catch (WebDriverTimeoutException)
-            //             {
-            //                 netDisconnected = true;
-            //
-            //                 if (Manager.TryTilGetConnection())
-            //                 {
-            //                     _driver?.Navigate().GoToUrl("https://www.instagram.com/direct/inbox");
-            //                     goto ClickNewDirect;
-            //                 }
-            //                 errCode = ErrorCode.Halfway;
-            //                 return false;
-            //             }
-            //             catch
-            //             {
-            //                 //ignored
-            //             }
-            //         }
-                
-                // if (_tryTimes >= 6)
-                // {
-                //     Manager.FailedSending(_users[i], _username, _jobId);
-                //     PrepareForSendDirects();
-                //     continue;
-                // }
-                // if (!byPassNextButtom)
-                // {
-                //     _tryTimes++;
-                //     Thread.Sleep(10000);
-                //     goto ClickDirect;
-                // }
-                // _tryTimes = 0;
                 Thread.Sleep(5000);
 
                 var random = new Random();
 
                 IWebElement? textField = null;
-                Thread.Sleep(10000);
+                Thread.Sleep(5000);
 
                 try
                 {
-                    textField = _driver?.FindElement(By.TagName("textarea"));
+                    textField = _driver?.FindElement(By.XPath("//p"));
                 }
                 catch (WebDriverTimeoutException)
                 {
@@ -641,6 +393,7 @@ dynamic jsonTargets, int waitTime, WorkerAssigned workerAssigned)
                         _driver?.Navigate().GoToUrl("https://www.instagram.com/direct/inbox");
                         goto ClickNewDirect;
                     }
+
                     errCode = ErrorCode.Halfway;
                     return false;
                 }
@@ -648,7 +401,8 @@ dynamic jsonTargets, int waitTime, WorkerAssigned workerAssigned)
                 {
                     try
                     {
-                        textField = _driver?.FindElement(By.XPath("/html/body/div[1]/div/div/div/div[1]/div/div/div/div[1]/div[1]/section/div/div[2]/div/div/div[2]/div[2]/div/div[2]/div/div/div[2]/textarea"));
+                        textField = _driver?.FindElement(By.XPath(
+                            "/html/body/div[1]/div/div/div/div[1]/div/div/div/div[1]/div[1]/section/div/div[2]/div/div/div[2]/div[2]/div/div[2]/div/div/div[2]/textarea"));
                     }
                     catch
                     {
@@ -667,20 +421,28 @@ dynamic jsonTargets, int waitTime, WorkerAssigned workerAssigned)
                         }
                     }
                 }
-                SomethingWentWrongTimes = 0;
-                textField?.SendKeys(message[random.Next(0, message.Count)]);
-                Thread.Sleep(1000);
-                textField?.SendKeys(Keys.Enter);
 
-                hasSuccsesfulDirect = true;
-                _tryTimes = 0;
+                try
+                {
+                    SomethingWentWrongTimes = 0;
+                    textField?.SendKeys(message[random.Next(0, message.Count)]);
+                    Thread.Sleep(1000);
+                    textField?.SendKeys(Keys.Enter);
+                    hasSuccsesfulDirect = true;
+                    _tryTimes = 0;
 
-                Manager.ChangeTargetStatusInServer(targets[i], _username, _jobId);
-                _userTemp.Add(targets[i]);
-                Worker?.SetLastSend(targets[i] + " _ " + DateTime.Now.ToString("HH:mm:ss"));
-                PrepareForSendDirects();
-                Thread.Sleep(random.Next(Manager.WaitMin, Manager.WaitMax));
+                    Manager.ChangeTargetStatusInServer(targets[i], _username, _jobId);
+                    _userTemp.Add(targets[i]);
+                    // Worker?.SetLastSend(targets[i] + " _ " + DateTime.Now.ToString("HH:mm:ss"));
+                    PrepareForSendDirects();
+                    Thread.Sleep(random.Next(Manager.WaitMin, Manager.WaitMax));
+                }
+                catch (Exception e)
+                {
+                    Debug.Log(e.Message);
+                }
             }
+
             return true;
         }
 
@@ -688,7 +450,5 @@ dynamic jsonTargets, int waitTime, WorkerAssigned workerAssigned)
         {
             return "User: " + _username + " | pass: " + _password + " | Users: " + _users.Count;
         }
-
-
     }
 }

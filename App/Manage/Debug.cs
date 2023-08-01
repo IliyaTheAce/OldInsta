@@ -19,7 +19,7 @@ namespace Insta_DM_Bot_server_wpf
         public static void Log(string log)
         {
             var logText = "\n " + DateTime.Now + ": \n" + log;
-            // File.AppendAllText("./Log/Log.txt", logText);
+            File.AppendAllText("./Log/Log.txt", logText);
         }
         public static void SendUser(string log, bool sentStatus)
         {
