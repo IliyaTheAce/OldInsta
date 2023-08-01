@@ -12,8 +12,6 @@ namespace Insta_DM_Bot_server_wpf
     internal class User : ICommand
     {
         private ChromeDriver? _driver;
-        public WorkerAssigned WorkerAssigned;
-        public Worker? Worker;
         private readonly int _waitTime;
 
         private readonly string _username;
@@ -36,7 +34,7 @@ namespace Insta_DM_Bot_server_wpf
 
 
         public User(int jobId, string username, string password, List<string> targets, List<string?> messages,
-            dynamic jsonTargets, int waitTime, WorkerAssigned workerAssigned)
+            dynamic jsonTargets, int waitTime)
         {
             _username = username;
             _password = password;
@@ -45,22 +43,6 @@ namespace Insta_DM_Bot_server_wpf
             _jobId = jobId;
             this._targets = jsonTargets;
             _waitTime = waitTime;
-            WorkerAssigned = workerAssigned;
-            switch (WorkerAssigned)
-            {
-                case WorkerAssigned.Worker1:
-                    Worker = Manager.worker1;
-                    break;
-                case WorkerAssigned.Worker2:
-                    Worker = Manager.worker2;
-                    break;
-                case WorkerAssigned.Worker3:
-                    Worker = Manager.worker3;
-                    break;
-                case WorkerAssigned.Worker4:
-                    Worker = Manager.worker4;
-                    break;
-            }
         }
 
 
@@ -117,7 +99,6 @@ namespace Insta_DM_Bot_server_wpf
             }
 
             if (isDead) return false;
-            Worker.Username = _username;
             if (!PrepareForSendDirects())
             {
                 StartNewDriver();
@@ -133,8 +114,7 @@ namespace Insta_DM_Bot_server_wpf
             }
 
             if (isDead) return false;
-
-            Manager.DestroyWorker(WorkerAssigned);
+            
             _driver.Quit();
             if (!Manager.SendWorkerEnd(_username, _jobId, _userTemp)) return false;
 
@@ -150,14 +130,13 @@ namespace Insta_DM_Bot_server_wpf
 
             return _successful;
         }
-
-        public void StartNewDriver()
+        void StartNewDriver()
         {
             _driver?.Quit();
             if (!gotBanned)
-                Manager.CancelWorker(_targets, _username, _password, _jobId.ToString(), WorkerAssigned, errCode);
+                Manager.CancelWorker(_targets, _username, _password, _jobId.ToString(), errCode);
             isDead = true;
-            Manager.DestroyWorker(WorkerAssigned);
+
             if (Manager.IsPaused) return;
             Thread.Sleep(2000);
             Manager.GetUserFromServer(true);
@@ -285,7 +264,7 @@ namespace Insta_DM_Bot_server_wpf
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.Message);
+                Debug.Log(e.Message + "___ save info button not found");
             }
 
             Thread.Sleep(5000);
@@ -296,7 +275,7 @@ namespace Insta_DM_Bot_server_wpf
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
+                Debug.Log(e.Message + "___ notification not now button not found");
             }
             Thread.Sleep(5000);
             // Inbox button -> 
@@ -351,7 +330,7 @@ namespace Insta_DM_Bot_server_wpf
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
+                //Not important
             }
             Thread.Sleep(5000);
             for (var i = 0; i < targets.Length; i++)
@@ -365,6 +344,7 @@ namespace Insta_DM_Bot_server_wpf
                 catch (Exception e)
                 {
                     Manager.FailedSending(_users[i], _username, _jobId);
+                    Debug.Log(e.Message);
                     PrepareForSendDirects();
                     SomethingWentWrongTimes++;
                     continue;
@@ -379,6 +359,7 @@ namespace Insta_DM_Bot_server_wpf
                 catch (Exception e)
                 {
                     Manager.FailedSending(_users[i], _username, _jobId);
+                    Debug.Log(e.Message);
                     PrepareForSendDirects();
                     SomethingWentWrongTimes++;
                     continue;
@@ -393,6 +374,7 @@ namespace Insta_DM_Bot_server_wpf
                 catch (Exception e)
                 {
                     Manager.FailedSending(_users[i], _username, _jobId);
+                    Debug.Log(e.Message);
                     PrepareForSendDirects();
                     SomethingWentWrongTimes++;
                     continue;
@@ -408,6 +390,7 @@ namespace Insta_DM_Bot_server_wpf
                 catch (Exception e)
                 {
                     Manager.FailedSending(_users[i], _username, _jobId);
+                    Debug.Log(e.Message);
                     PrepareForSendDirects();
                     SomethingWentWrongTimes++;
                     continue;
@@ -483,11 +466,6 @@ namespace Insta_DM_Bot_server_wpf
             }
 
             return true;
-        }
-
-        public string GetDescription()
-        {
-            return "User: " + _username + " | pass: " + _password + " | Users: " + _users.Count;
         }
     }
 }

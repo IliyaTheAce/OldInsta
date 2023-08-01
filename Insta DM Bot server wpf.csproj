@@ -6,7 +6,7 @@
     <RootNamespace>Insta_DM_Bot_server_wpf</RootNamespace>
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
-    <ApplicationIcon>Icon.ico</ApplicationIcon>
+    <ApplicationIcon>App\Resources\Icons\Icon.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
@@ -29,10 +29,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="Icon.ico" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="MaterialDesignColors" Version="2.0.6" />
     <PackageReference Include="MaterialDesignThemes" Version="4.5.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
@@ -41,20 +37,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Resource Include="App\Resources\BG.png" />
-    <Resource Include="App\Resources\close.png" />
-    <Resource Include="App\Resources\logoEdited.png" />
-    <Resource Include="App\Resources\Minimize.png" />
-    <Resource Include="BG2.jpg" />
-    <Resource Include="App\Resources\logo2.png" />
+    <Resource Include="App\Resources\BackGround.jpg" />
+    <Resource Include="App\Resources\Buttons\Exit.png" />
+    <Resource Include="App\Resources\Buttons\Maximize.png" />
+    <Resource Include="App\Resources\Buttons\Minimize.png" />
+    <Resource Include="App\Resources\ScreenCenterLogo.png" />
     <Resource Include="App\Resources\ServerIcon.png" />
     <Resource Include="App\Resources\InternetIcon.png" />
-    <Resource Include="crop_5_4_FILL0_wght400_GRAD0_opsz48.png" />
-    <Resource Include="cross (1).png" />
-    <Resource Include="cross.png" />
-    <Resource Include="fullscreen 2.png" />
-    <Resource Include="fullscreen.png" />
-    <Resource Include="minus-button.png" />
   </ItemGroup>
 
 </Project>

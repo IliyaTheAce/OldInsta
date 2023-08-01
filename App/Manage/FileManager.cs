@@ -49,5 +49,17 @@ namespace Insta_DM_Bot_server_wpf
                 return (T)binaryFormatter.Deserialize(stream);
             }
         }
+
+        public static void CheckFilesAndDirectories()
+        {
+            if (!File.Exists("./App/Log/Log.json"))
+            {
+                if (!Directory.Exists("./App/Log"))
+                {
+                    Directory.CreateDirectory("./App/Log");
+                }
+                File.Create("./App/Log/Log.json");
+            }
+        }
     }
 }

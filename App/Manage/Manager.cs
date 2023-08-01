@@ -8,11 +8,6 @@ using System.Threading;
 
 namespace Insta_DM_Bot_server_wpf
 {
-    public enum WorkerAssigned
-    {
-        Worker1,Worker2,Worker3,Worker4
-    }
-
     internal static class Manager
     {
         public static readonly Queue<ICommand> Queue = new Queue<ICommand>();
@@ -30,12 +25,6 @@ namespace Insta_DM_Bot_server_wpf
         //Connection checker
         public static bool ConnectionToNet;
         public static bool ConnectionToServer;
-        
-        //Workers properties
-        public static Worker? worker1;
-        public static Worker? worker2;
-        public static Worker? worker3;
-        public static Worker? worker4;
 
         //URLs
         const string fetchJob = "https://instagram.one2.ir/api/fetchJob";
@@ -79,57 +68,38 @@ namespace Insta_DM_Bot_server_wpf
                     text = text.Replace("<br>", "\n");
                     messages.Add(text);
                 }
-                WorkerAssigned assign = WorkerAssigned.Worker1;
-                if (worker1 is null)
-                {
-                    worker1 = new Worker();
-                    assign = WorkerAssigned.Worker1;
-                }
-                else if (worker2 is null)
-                {
-                    worker2 = new Worker();
-                    assign = WorkerAssigned.Worker2;
-                }
-                else if (worker3 is null)
-                {
-                    worker3 = new Worker();
-                    assign = WorkerAssigned.Worker3;
 
-                }
-                else if (worker4 is null)
-                {
-
-                    worker4 = new Worker();
-                    assign = WorkerAssigned.Worker4;
-                }
                 var waitTime = 7 * 60 * 1000;
                 if (firstTime)
                 {
                     waitTime = (Queue.Count) * NewWindowWaitTime;
                 }
+
                 if (waitTime < 0) waitTime = 0;
-                var newUser = new User(jobId, user, pass, targets, messages, stuff.targets, waitTime, assign);
+                var newUser = new User(jobId, user, pass, targets, messages, stuff.targets, waitTime);
                 Manager.Queue.Enqueue(newUser);
             }
-                      
-            catch(Exception e)
+
+            catch (Exception e)
             {
                 Debug.Log(e.ToString());
             }
-}
+        }
 
 
-        public static void StartSending( int count)
+        public static void StartSending(int count)
         {
             for (var i = 0; i < count; i++)
             {
                 Task.Run(
-                    () => {
+                    () =>
+                    {
                         if (Queue.Count > 0)
                             Queue.Dequeue().Execute();
                     });
             }
         }
+
         public static bool IsConnectedToInternet()
         {
             return NetworkInterface.GetIsNetworkAvailable();
@@ -153,7 +123,7 @@ namespace Insta_DM_Bot_server_wpf
 
         public static void ChangeTargetStatusInServer(string target, string workerUserName, int jobId)
         {
-            Debug.SendUser(target, true);
+            Debug.SendUser(target, workerUserName, jobId.ToString(), true);
 
             try
             {
@@ -184,7 +154,8 @@ namespace Insta_DM_Bot_server_wpf
             } while (true);
         }
 
-        public static void CancelWorker(dynamic targets, string worker , string password, string jobId , WorkerAssigned assign , ErrorCode errCode)
+        public static void CancelWorker(dynamic targets, string worker, string password, string jobId,
+            ErrorCode errCode)
         {
             try
             {
@@ -196,7 +167,6 @@ namespace Insta_DM_Bot_server_wpf
                 client.QueryString.Add("errCode", errCode.GetHashCode().ToString());
                 client.QueryString.Add("password", password);
                 client.DownloadString(cancelJob);
-                DestroyWorker(assign);
             }
             catch (Exception e)
             {
@@ -206,7 +176,8 @@ namespace Insta_DM_Bot_server_wpf
 
         public static void FailedSending(string failedTarget, string worker, int jobId)
         {
-            Debug.SendUser(failedTarget, false);
+            Debug.SendUser(failedTarget, worker, jobId.ToString(), false);
+
 
             try
             {
@@ -222,19 +193,7 @@ namespace Insta_DM_Bot_server_wpf
             }
         }
 
-
-        public static void DestroyWorker(WorkerAssigned assigned)
-        {
-            switch (assigned)
-            {
-                case WorkerAssigned.Worker1: worker1 = null; break;
-                case WorkerAssigned.Worker2: worker2 = null; break;
-                case WorkerAssigned.Worker3: worker3 = null; break;
-                case WorkerAssigned.Worker4: worker4 = null; break;
-            }
-        }
-
-        public static void SendError(string exception ,string worker , int jobId)
+        public static void SendError(string exception, string worker, int jobId)
         {
             try
             {
@@ -249,6 +208,7 @@ namespace Insta_DM_Bot_server_wpf
                 Debug.Log(e.ToString());
             }
         }
+
         public static void BanUser(string worker, int jobId)
         {
             try
@@ -270,6 +230,7 @@ namespace Insta_DM_Bot_server_wpf
             xpaths = stuff;
 
         }
+
         public static void UpdateXpaths()
         {
             Console.WriteLine("Started updateing");
@@ -285,28 +246,52 @@ namespace Insta_DM_Bot_server_wpf
                 {
                     switch (xpath.section.ToString())
                     {
-                        case "username": xpaths.username.Add(xpath.xPath.ToString()); break;
-                        case "password": xpaths.password.Add(xpath.xPath.ToString()); break;
-                        case "ErrorText": xpaths.ErrorText.Add(xpath.xPath.ToString()); break;
-                        case "saveInfo": xpaths.saveInfo.Add(xpath.xPath.ToString()); break;
-                        case "notification": xpaths.notification.Add(xpath.xPath.ToString()); break;
-                        case "newDirect": xpaths.newDirect.Add(xpath.xPath.ToString()); break;
-                        case "targetInput": xpaths.targetInput.Add(xpath.xPath.ToString()); break;
-                        case "selectUser": xpaths.selectUser.Add(xpath.xPath.ToString()); break;
-                        case "NextButtom": xpaths.NextButtom.Add(xpath.xPath.ToString()); break;
-                        case "TextArea": xpaths.TextArea.Add(xpath.xPath.ToString()); break;
-                        case "allowCookies": xpaths.allowCookies.Add(xpath.xPath.ToString()); break;
+                        case "username":
+                            xpaths.username.Add(xpath.xPath.ToString());
+                            break;
+                        case "password":
+                            xpaths.password.Add(xpath.xPath.ToString());
+                            break;
+                        case "ErrorText":
+                            xpaths.ErrorText.Add(xpath.xPath.ToString());
+                            break;
+                        case "saveInfo":
+                            xpaths.saveInfo.Add(xpath.xPath.ToString());
+                            break;
+                        case "notification":
+                            xpaths.notification.Add(xpath.xPath.ToString());
+                            break;
+                        case "newDirect":
+                            xpaths.newDirect.Add(xpath.xPath.ToString());
+                            break;
+                        case "targetInput":
+                            xpaths.targetInput.Add(xpath.xPath.ToString());
+                            break;
+                        case "selectUser":
+                            xpaths.selectUser.Add(xpath.xPath.ToString());
+                            break;
+                        case "NextButtom":
+                            xpaths.NextButtom.Add(xpath.xPath.ToString());
+                            break;
+                        case "TextArea":
+                            xpaths.TextArea.Add(xpath.xPath.ToString());
+                            break;
+                        case "allowCookies":
+                            xpaths.allowCookies.Add(xpath.xPath.ToString());
+                            break;
                     }
                 }
+
                 FileManager.WriteToBinaryFile<Xpath>(xpathSaveFilePath, xpaths, true);
                 Console.WriteLine("Xpathes updated");
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 Console.WriteLine(e.Message);
                 LoadXpaths();
             }
         }
+
         public static bool SendWorkerEnd(string worker, int jobId, List<string> targets)
         {
             var succ = true;
@@ -317,7 +302,8 @@ namespace Insta_DM_Bot_server_wpf
                 {
                     var client = new WebClient();
                     var res = JsonConvert.SerializeObject(targets);
-                    var result = client.DownloadString("https://instagram.one2.ir/api/reportJob?jobId=" + jobId + "&worker=" + worker + "&targets=" + res);
+                    var result = client.DownloadString("https://instagram.one2.ir/api/reportJob?jobId=" + jobId +
+                                                       "&worker=" + worker + "&targets=" + res);
                     return result.Contains("true");
                 }
                 catch (Exception e)
@@ -329,25 +315,14 @@ namespace Insta_DM_Bot_server_wpf
                         succ = false;
                     }
                 }
+
                 Thread.Sleep(50000);
-            }
-            while (succ);
-            TestWindows.ShowMessage("Couldn't send request to server!", " Internal error", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
-            Debug.SendSuccsesfulUser(worker, targets, jobId.ToString());
+            } while (succ);
+
+            MainWindow.ShowMessage("Couldn't send request to server!", " Internal error",
+                System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
             return false;
         }
-    }
 
-    public class Worker
-    {
-        public string Username { get; set; }
-        public string User1;
-        public string User2;
-
-        public void SetLastSend(string lastSend)
-        {
-            User2 = User1;
-            User1 = lastSend;
-        }
     }
 }

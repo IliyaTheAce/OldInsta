@@ -9,6 +9,5 @@ namespace Insta_DM_Bot_server_wpf
     internal interface ICommand
     {
         bool Execute();
-        string GetDescription();
     }
 }
