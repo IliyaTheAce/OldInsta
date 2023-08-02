@@ -359,7 +359,7 @@ namespace Insta_DM_Bot_server_wpf
                 catch (Exception e)
                 {
                     Manager.FailedSending(_users[i], _username, _jobId);
-                    Debug.Log(e.Message);
+                    // Debug.Log(e.Message);
                     PrepareForSendDirects();
                     SomethingWentWrongTimes++;
                     continue;
@@ -367,18 +367,26 @@ namespace Insta_DM_Bot_server_wpf
                 
                 Thread.Sleep(5000);
                 //Select first contact on list
-                try
+                for (int j = 0; j < 7; j++)
                 {
-                    _driver?.FindElement(By.CssSelector(@".x1i10hfl:nth-child(1) .x1lliihq > circle")).Click();
+                    try
+                    {
+                        _driver?.FindElement(By.CssSelector(@".x1i10hfl:nth-child(1) .x1lliihq > circle")).Click();
+                        break;
+                    }
+                    catch (Exception e)
+                    {
+                        Thread.Sleep(10000);
+                        if (i >= 6)
+                        {
+                            Manager.FailedSending(_users[i], _username, _jobId);
+                            // Debug.Log(e.Message);
+                            PrepareForSendDirects();
+                            SomethingWentWrongTimes++;  
+                        }
+                    }
                 }
-                catch (Exception e)
-                {
-                    Manager.FailedSending(_users[i], _username, _jobId);
-                    Debug.Log(e.Message);
-                    PrepareForSendDirects();
-                    SomethingWentWrongTimes++;
-                    continue;
-                }
+
                 
                 Thread.Sleep(1000);
 
@@ -390,7 +398,7 @@ namespace Insta_DM_Bot_server_wpf
                 catch (Exception e)
                 {
                     Manager.FailedSending(_users[i], _username, _jobId);
-                    Debug.Log(e.Message);
+                    // Debug.Log(e.Message);
                     PrepareForSendDirects();
                     SomethingWentWrongTimes++;
                     continue;
