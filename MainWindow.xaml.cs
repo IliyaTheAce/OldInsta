@@ -18,7 +18,9 @@ namespace Insta_DM_Bot_server_wpf
         public MainWindow()
         {
             InitializeComponent();
-            var connectionTimer = new System.Timers.Timer();
+            Manager.CheckRegistration();
+
+                var connectionTimer = new System.Timers.Timer();
             connectionTimer.Elapsed += CheckConnectionTick;
             connectionTimer.Elapsed += RefreshLog;
             connectionTimer.Interval = 30000;

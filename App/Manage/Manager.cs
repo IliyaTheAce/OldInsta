@@ -5,6 +5,7 @@ using System.Net.NetworkInformation;
 using System.Net;
 using Newtonsoft.Json;
 using System.Threading;
+using System.Windows;
 
 namespace Insta_DM_Bot_server_wpf
 {
@@ -324,5 +325,13 @@ namespace Insta_DM_Bot_server_wpf
             return false;
         }
 
+        public static void CheckRegistration()
+        {
+            var credential = FileManager.ReadCredential();
+            if (credential.registered == false)
+            {
+                MessageBox.Show("First Register Client");
+            }
+        }
     }
 }
