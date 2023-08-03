@@ -429,33 +429,34 @@ namespace Insta_DM_Bot_server_wpf
                 }
                 catch (Exception e)
                 {
-                    try
-                    {
-                        textField = _driver?.FindElement(By.XPath(
-                            "/html/body/div[1]/div/div/div/div[1]/div/div/div/div[1]/div[1]/section/div/div[2]/div/div/div[2]/div[2]/div/div[2]/div/div/div[2]/textarea"));
-                    }
-                    catch
-                    {
-                        Debug.Log(e.Message);
-                        if (SomethingWentWrongTimes < 3)
-                        {
-                            Manager.FailedSending(_users[i], _username, _jobId);
-                            PrepareForSendDirects();
-                            SomethingWentWrongTimes++;
-                            continue;
-                        }
-                        else
-                        {
-                            errCode = ErrorCode.SWW;
-                            return false;
-                        }
-                    }
+                    // try
+                    // {
+                    //     textField = _driver?.FindElement(By.XPath(
+                    //         "/html/body/div[1]/div/div/div/div[1]/div/div/div/div[1]/div[1]/section/div/div[2]/div/div/div[2]/div[2]/div/div[2]/div/div/div[2]/textarea"));
+                    // }
+                    // catch
+                    // {
+                    //     Debug.Log(e.Message);
+                    //     if (SomethingWentWrongTimes < 3)
+                    //     {
+                    //         Manager.FailedSending(_users[i], _username, _jobId);
+                    //         PrepareForSendDirects();
+                    //         SomethingWentWrongTimes++;
+                    //         continue;
+                    //     }
+                    //     else
+                    //     {
+                    //         errCode = ErrorCode.SWW;
+                    //         return false;
+                    //     }
+                    // }
                 }
 
                 try
                 {
                     SomethingWentWrongTimes = 0;
-                    textField?.SendKeys(message[random.Next(0, message.Count)]);
+                    // textField?.SendKeys(message[random.Next(0, message.Count)]);
+                    textField?.SendKeys(message[0]);
                     Thread.Sleep(1000);
                     textField?.SendKeys(Keys.Enter);
                     hasSuccsesfulDirect = true;

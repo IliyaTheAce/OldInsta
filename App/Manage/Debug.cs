@@ -39,10 +39,11 @@ namespace Insta_DM_Bot_server_wpf
         }
         public static void Log(string message)
         {
-            var text = File.ReadAllText("./App/Log/Log.Json");
-            var json = JsonConvert.DeserializeObject<LogFile>(text);
-            json.logs.Append(new LogObj(){message = message , time = new DateTime()});
-            File.WriteAllText("./App/Log/Log.Json", JsonConvert.SerializeObject(json));
+            File.AppendAllText("./App/Log/Log.txt" ,message );
+            // var text = File.ReadAllText("./App/Log/Log.Json");
+            // var json = JsonConvert.DeserializeObject<LogFile>(text);
+            // json.logs.Append(new LogObj(){message = message , time = new DateTime()});
+            // File.WriteAllText("./App/Log/Log.Json", JsonConvert.SerializeObject(json));
         }
         public static void SendUser(string target , string worker , string jobId, bool sentStatus)
         {
