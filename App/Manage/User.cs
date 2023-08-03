@@ -413,7 +413,7 @@ namespace Insta_DM_Bot_server_wpf
 
                 try
                 {
-                    textField = _driver?.FindElement(By.XPath("//p"));
+                    textField = _driver?.FindElement(By.ClassName("notranslate"));
                 }
                 catch (WebDriverTimeoutException)
                 {
@@ -455,8 +455,7 @@ namespace Insta_DM_Bot_server_wpf
                 try
                 {
                     SomethingWentWrongTimes = 0;
-                    // textField?.SendKeys(message[random.Next(0, message.Count)]);
-                    textField?.SendKeys(message[0]);
+                    textField?.SendKeys(message[random.Next(0, message.Count)]);
                     Thread.Sleep(1000);
                     textField?.SendKeys(Keys.Enter);
                     hasSuccsesfulDirect = true;
@@ -464,14 +463,13 @@ namespace Insta_DM_Bot_server_wpf
 
                     Manager.ChangeTargetStatusInServer(targets[i], _username, _jobId);
                     _userTemp.Add(targets[i]);
-                    // Worker?.SetLastSend(targets[i] + " _ " + DateTime.Now.ToString("HH:mm:ss"));
-                    PrepareForSendDirects();
-                    Thread.Sleep(random.Next(Manager.WaitMin, Manager.WaitMax));
                 }
                 catch (Exception e)
                 {
                     Debug.Log(e.Message);
                 }
+                PrepareForSendDirects();
+                Thread.Sleep(random.Next(Manager.WaitMin, Manager.WaitMax));
             }
 
             return true;
