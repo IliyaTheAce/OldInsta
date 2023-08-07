@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Timers;
 using Timer = System.Timers.Timer;
 
@@ -89,7 +90,10 @@ namespace Insta_DM_Bot_server_wpf
         public bool Execute()
         {
             Thread.Sleep(_waitTime);
-            _driver = new ChromeDriver();
+            var options = new ChromeOptions();
+            options.AddArgument(
+                "--user-agent=Mozilla/5.0 (Linux; Android 10; SM-G981B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.162 Mobile Safari/537.36");
+            _driver = new ChromeDriver(options);
             _driver.Manage().Window.Size = new Size(516, 703);
             TimerInitialize();
             if (!SignIn(_username, _password))
@@ -166,7 +170,6 @@ namespace Insta_DM_Bot_server_wpf
 
             Thread.Sleep(5000);
             Login:
-
             //Allow Cookies Button 
             try
             {
@@ -252,6 +255,17 @@ namespace Insta_DM_Bot_server_wpf
                 //Nothing
             }
 
+            //Home screen Shortcut
+            try
+            {
+                _driver?.FindElement(By.XPath("//button[contains(.,'Cancel')]")).Click();
+            }
+            catch (Exception e)
+            {
+                // Debug.Log(e.Message);
+            }
+
+            Thread.Sleep(5000);
 
             //Not Now Button
             try
@@ -324,6 +338,20 @@ namespace Insta_DM_Bot_server_wpf
 
         private bool SendMessage(string[] targets, List<string?> message)
         {
+            
+            //Home screen Shortcut
+            try
+            {
+                _driver?.FindElement(By.XPath("//button[contains(.,'Cancel')]")).Click();
+            }
+            catch (Exception e)
+            {
+                // Debug.Log(e.Message);
+            }
+
+            Thread.Sleep(5000);
+
+            
             try
             {
                 _driver?.FindElement(By.XPath("//button[contains(.,'Not Now')]")).Click();
@@ -333,13 +361,14 @@ namespace Insta_DM_Bot_server_wpf
                 //Not important
             }
             Thread.Sleep(5000);
+            
             for (var i = 0; i < targets.Length; i++)
             {
                 ClickNewDirect:
                 //New Direct Button
                 try
                 {
-                    _driver?.FindElement(By.XPath("/html/body/div[2]/div/div/div[2]/div/div/div/div[1]/div[1]/div[2]/section/div/div/div/div[1]/div/div[1]/div/div[1]/div")).Click();
+                    _driver?.FindElement(By.CssSelector(@".xexx8yu > .x1lliihq")).Click();
                 }
                 catch (Exception e)
                 {
@@ -367,24 +396,31 @@ namespace Insta_DM_Bot_server_wpf
                 
                 Thread.Sleep(5000);
                 //Select first contact on list
+                var success = false;
                 for (int j = 0; j < 7; j++)
                 {
                     try
                     {
-                        _driver?.FindElement(By.CssSelector(@".x1i10hfl:nth-child(1) .x1lliihq > circle")).Click();
+                        _driver?.FindElement(By.CssSelector(".x1cy8zhl")).Click();
+                        success = true;
                         break;
                     }
                     catch (Exception e)
                     {
+                        Debug.Log(e.Message);
+
                         Thread.Sleep(10000);
                         if (i >= 6)
                         {
-                            Manager.FailedSending(_users[i], _username, _jobId);
-                            // Debug.Log(e.Message);
                             PrepareForSendDirects();
                             SomethingWentWrongTimes++;  
                         }
                     }
+                }
+
+                if (!success)
+                {
+                    Manager.FailedSending(_users[i], _username, _jobId);
                 }
 
                 
@@ -393,7 +429,7 @@ namespace Insta_DM_Bot_server_wpf
                 //Chat button
                 try
                 {
-                    _driver?.FindElement(By.CssSelector(@".xn3w4p2")).Click();
+                    _driver?.FindElement(By.CssSelector(".xt0psk2")).Click();
                 }
                 catch (Exception e)
                 {
@@ -468,8 +504,22 @@ namespace Insta_DM_Bot_server_wpf
                 {
                     Debug.Log(e.Message);
                 }
+
+                Thread.Sleep(6000);
+                try
+                {
+                    var randomScroll = new Random();                                  
+                    var humanize = new Humanize(_driver, randomScroll.Next(5, 10));   
+                    var HumanizeTask = Task.Run(humanize.Start);                      
+                    Task.WaitAll(HumanizeTask);                                       
+                }
+                catch (Exception e)
+                {
+                    Debug.Log(e.Message);
+                    throw;
+                }
+                // Thread.Sleep(random.Next(Manager.WaitMin, Manager.WaitMax));
                 PrepareForSendDirects();
-                Thread.Sleep(random.Next(Manager.WaitMin, Manager.WaitMax));
             }
 
             return true;

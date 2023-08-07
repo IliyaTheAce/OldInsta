@@ -39,7 +39,7 @@ namespace Insta_DM_Bot_server_wpf
         }
         public static void Log(string message)
         {
-            File.AppendAllText("./App/Log/Log.txt" ,message );
+            File.AppendAllText("./App/Log/Log.txt", message + "\n");
             // var text = File.ReadAllText("./App/Log/Log.Json");
             // var json = JsonConvert.DeserializeObject<LogFile>(text);
             // json.logs.Append(new LogObj(){message = message , time = new DateTime()});
