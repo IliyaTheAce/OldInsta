@@ -118,7 +118,7 @@ namespace Insta_DM_Bot_server_wpf
             }
 
             if (isDead) return false;
-            
+
             _driver.Quit();
             if (!Manager.SendWorkerEnd(_username, _jobId, _userTemp)) return false;
 
@@ -134,6 +134,7 @@ namespace Insta_DM_Bot_server_wpf
 
             return _successful;
         }
+
         void StartNewDriver()
         {
             _driver?.Quit();
@@ -291,10 +292,11 @@ namespace Insta_DM_Bot_server_wpf
             {
                 Debug.Log(e.Message + "___ notification not now button not found");
             }
+
             Thread.Sleep(5000);
             // Inbox button -> 
             // _driver?.FindElement(By.CssSelector(@".x1o5bo1o > .\_ab6-")).Click();
-            
+
             if (_driver.Url.Contains("challenge"))
             {
                 Manager.BanUser(username, _jobId);
@@ -338,7 +340,6 @@ namespace Insta_DM_Bot_server_wpf
 
         private bool SendMessage(string[] targets, List<string?> message)
         {
-            
             //Home screen Shortcut
             try
             {
@@ -351,7 +352,7 @@ namespace Insta_DM_Bot_server_wpf
 
             Thread.Sleep(5000);
 
-            
+
             try
             {
                 _driver?.FindElement(By.XPath("//button[contains(.,'Not Now')]")).Click();
@@ -360,8 +361,9 @@ namespace Insta_DM_Bot_server_wpf
             {
                 //Not important
             }
+
             Thread.Sleep(5000);
-            
+
             for (var i = 0; i < targets.Length; i++)
             {
                 ClickNewDirect:
@@ -378,7 +380,7 @@ namespace Insta_DM_Bot_server_wpf
                     SomethingWentWrongTimes++;
                     continue;
                 }
-                
+
                 Thread.Sleep(1000);
                 //Search bar
                 try
@@ -393,37 +395,20 @@ namespace Insta_DM_Bot_server_wpf
                     SomethingWentWrongTimes++;
                     continue;
                 }
-                
+
                 Thread.Sleep(5000);
-                //Select first contact on list
-                var success = false;
-                for (int j = 0; j < 7; j++)
+                try
                 {
-                    try
-                    {
-                        _driver?.FindElement(By.CssSelector(".x1cy8zhl")).Click();
-                        success = true;
-                        break;
-                    }
-                    catch (Exception e)
-                    {
-                        Debug.Log(e.Message);
-
-                        Thread.Sleep(10000);
-                        if (i >= 6)
-                        {
-                            PrepareForSendDirects();
-                            SomethingWentWrongTimes++;  
-                        }
-                    }
+                    _driver?.FindElement(By.CssSelector(".x1cy8zhl")).Click();
+                    break;
                 }
-
-                if (!success)
+                catch (Exception e)
                 {
+                    Debug.Log(e.Message);
                     Manager.FailedSending(_users[i], _username, _jobId);
                 }
 
-                
+
                 Thread.Sleep(1000);
 
                 //Chat button
@@ -508,16 +493,17 @@ namespace Insta_DM_Bot_server_wpf
                 Thread.Sleep(6000);
                 try
                 {
-                    var randomScroll = new Random();                                  
-                    var humanize = new Humanize(_driver, randomScroll.Next(5, 10));   
-                    var HumanizeTask = Task.Run(humanize.Start);                      
-                    Task.WaitAll(HumanizeTask);                                       
+                    var randomScroll = new Random();
+                    var humanize = new Humanize(_driver, randomScroll.Next(5, 10));
+                    var HumanizeTask = Task.Run(humanize.Start);
+                    Task.WaitAll(HumanizeTask);
                 }
                 catch (Exception e)
                 {
                     Debug.Log(e.Message);
                     throw;
                 }
+
                 // Thread.Sleep(random.Next(Manager.WaitMin, Manager.WaitMax));
                 PrepareForSendDirects();
             }
