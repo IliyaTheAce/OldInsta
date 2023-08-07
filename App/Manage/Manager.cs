@@ -17,8 +17,10 @@ namespace Insta_DM_Bot_server_wpf
         //Settings
         //FE => 10000 -> 11000
         //SE => 60000 -> 240000
-        public const int WaitMin = 60000;
-        public const int WaitMax = 240000;
+        // public const int WaitMin = 60000;
+        // public const int WaitMax = 240000;
+        public const int WaitMin = 360000;
+        public const int WaitMax = 600000;
         public static int DriverCount = 2;
         public static bool IsPaused = false;
         private const int NewWindowWaitTime = 60000;
