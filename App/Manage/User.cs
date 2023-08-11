@@ -119,12 +119,10 @@ namespace Insta_DM_Bot_server_wpf
             if (isDead) return false;
 
             _driver.Quit();
-            isDead = true;
             if (!Manager.SendWorkerEnd(_username, _jobId, _userTemp)) return false;
 
-            if (Manager.IsPaused) return _successful;
-            if (isDead) return false;
             isDead = true;
+            if (Manager.IsPaused) return _successful;
             Manager.GetUserFromServer(false);
             Thread.Sleep(5000);
             if (Manager.Queue.Count > 0)
@@ -518,7 +516,7 @@ namespace Insta_DM_Bot_server_wpf
                 catch (Exception e)
                 {
                     Debug.Log(e.Message);
-                    throw;
+                    Thread.Sleep(180000);
                 }
 
                 // Thread.Sleep(random.Next(Manager.WaitMin, Manager.WaitMax));
