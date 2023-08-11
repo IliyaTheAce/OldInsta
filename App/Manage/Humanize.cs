@@ -59,7 +59,7 @@ public class Humanize
         catch (Exception e)
         {
             Debug.Log(e.Message);
-            throw;
+            await Task.Delay(240000);
         }
     }
 }

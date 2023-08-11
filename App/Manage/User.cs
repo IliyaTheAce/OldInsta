@@ -63,8 +63,7 @@ namespace Insta_DM_Bot_server_wpf
 
         private void TimerElapsed(object sender, ElapsedEventArgs args)
         {
-            if (isDead) return;
-            if (gotBanned)
+            if (gotBanned || isDead)
             {
                 _timer.Stop();
                 _timer.Dispose();
@@ -92,7 +91,7 @@ namespace Insta_DM_Bot_server_wpf
             Thread.Sleep(_waitTime);
             var options = new ChromeOptions();
             options.AddArgument(
-                "--user-agent=Mozilla/5.0 (Linux; Android 10; SM-G981B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.162 Mobile Safari/537.36");
+                "--user-agent=Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1");
             _driver = new ChromeDriver(options);
             _driver.Manage().Window.Size = new Size(516, 703);
             TimerInitialize();
@@ -118,8 +117,9 @@ namespace Insta_DM_Bot_server_wpf
             }
 
             if (isDead) return false;
-            
+
             _driver.Quit();
+            isDead = true;
             if (!Manager.SendWorkerEnd(_username, _jobId, _userTemp)) return false;
 
             if (Manager.IsPaused) return _successful;
@@ -134,6 +134,7 @@ namespace Insta_DM_Bot_server_wpf
 
             return _successful;
         }
+
         void StartNewDriver()
         {
             _driver?.Quit();
@@ -291,11 +292,12 @@ namespace Insta_DM_Bot_server_wpf
             {
                 Debug.Log(e.Message + "___ notification not now button not found");
             }
+
             Thread.Sleep(5000);
             // Inbox button -> 
             // _driver?.FindElement(By.CssSelector(@".x1o5bo1o > .\_ab6-")).Click();
-            
-            if (_driver.Url.Contains("challenge"))
+
+            if (_driver.Url.Contains("challenge") || _driver.Url.Contains("suspend") || _driver.Url.Contains("login"))
             {
                 Manager.BanUser(username, _jobId);
                 gotBanned = true;
@@ -338,7 +340,6 @@ namespace Insta_DM_Bot_server_wpf
 
         private bool SendMessage(string[] targets, List<string?> message)
         {
-            
             //Home screen Shortcut
             try
             {
@@ -351,7 +352,7 @@ namespace Insta_DM_Bot_server_wpf
 
             Thread.Sleep(5000);
 
-            
+
             try
             {
                 _driver?.FindElement(By.XPath("//button[contains(.,'Not Now')]")).Click();
@@ -360,8 +361,9 @@ namespace Insta_DM_Bot_server_wpf
             {
                 //Not important
             }
+
             Thread.Sleep(5000);
-            
+
             for (var i = 0; i < targets.Length; i++)
             {
                 ClickNewDirect:
@@ -378,7 +380,7 @@ namespace Insta_DM_Bot_server_wpf
                     SomethingWentWrongTimes++;
                     continue;
                 }
-                
+
                 Thread.Sleep(1000);
                 //Search bar
                 try
@@ -393,7 +395,7 @@ namespace Insta_DM_Bot_server_wpf
                     SomethingWentWrongTimes++;
                     continue;
                 }
-                
+
                 Thread.Sleep(5000);
                 //Select first contact on list
                 var success = false;
@@ -413,7 +415,7 @@ namespace Insta_DM_Bot_server_wpf
                         if (i >= 6)
                         {
                             PrepareForSendDirects();
-                            SomethingWentWrongTimes++;  
+                            SomethingWentWrongTimes++;
                         }
                     }
                 }
@@ -423,7 +425,7 @@ namespace Insta_DM_Bot_server_wpf
                     Manager.FailedSending(_users[i], _username, _jobId);
                 }
 
-                
+
                 Thread.Sleep(1000);
 
                 //Chat button
@@ -508,16 +510,17 @@ namespace Insta_DM_Bot_server_wpf
                 Thread.Sleep(6000);
                 try
                 {
-                    var randomScroll = new Random();                                  
-                    var humanize = new Humanize(_driver, randomScroll.Next(5, 10));   
-                    var HumanizeTask = Task.Run(humanize.Start);                      
-                    Task.WaitAll(HumanizeTask);                                       
+                    var randomScroll = new Random();
+                    var humanize = new Humanize(_driver, randomScroll.Next(5, 12));
+                    var HumanizeTask = Task.Run(humanize.Start);
+                    Task.WaitAll(HumanizeTask);
                 }
                 catch (Exception e)
                 {
                     Debug.Log(e.Message);
                     throw;
                 }
+
                 // Thread.Sleep(random.Next(Manager.WaitMin, Manager.WaitMax));
                 PrepareForSendDirects();
             }
