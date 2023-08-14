@@ -33,7 +33,7 @@ namespace Insta_DM_Bot_server_wpf
         private bool gotBanned;
         private List<string> _userTemp = new List<string>();
 
-
+        private int failedTimes = 0;
         public User(int jobId, string username, string password, List<string> targets, List<string?> messages,
             dynamic jsonTargets, int waitTime)
         {
@@ -366,6 +366,12 @@ namespace Insta_DM_Bot_server_wpf
 
             for (var i = 0; i < targets.Length; i++)
             {
+
+                if (failedTimes >= 5)
+                {
+                    //TODO: Change this
+                    // Manager.CancelWorker(targets - _userTemp.ToArray());
+                }
                 ClickNewDirect:
                 //New Direct Button
                 try
@@ -378,6 +384,8 @@ namespace Insta_DM_Bot_server_wpf
                     Debug.Log(e.Message);
                     PrepareForSendDirects();
                     SomethingWentWrongTimes++;
+                    failedTimes++;
+                    failedTimes++;
                     continue;
                 }
 
@@ -416,6 +424,7 @@ namespace Insta_DM_Bot_server_wpf
                         {
                             PrepareForSendDirects();
                             SomethingWentWrongTimes++;
+                            failedTimes++;
                         }
                     }
                 }
@@ -439,6 +448,7 @@ namespace Insta_DM_Bot_server_wpf
                     // Debug.Log(e.Message);
                     PrepareForSendDirects();
                     SomethingWentWrongTimes++;
+                    failedTimes++;
                     continue;
                 }
 
@@ -498,7 +508,7 @@ namespace Insta_DM_Bot_server_wpf
                     textField?.SendKeys(Keys.Enter);
                     hasSuccsesfulDirect = true;
                     _tryTimes = 0;
-
+                    failedTimes = 0;
                     Manager.ChangeTargetStatusInServer(targets[i], _username, _jobId);
                     _userTemp.Add(targets[i]);
                 }
