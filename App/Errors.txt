@@ -1,0 +1,12 @@
+﻿Log {
+200 -> Ok 
+610 -> Not sent
+}
+
+Update {
+200 -> Ok
+510 -> Worker problem
+520 -> timer
+530 -> Ban
+540 -> Critical error
+}

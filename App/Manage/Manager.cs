@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Net.NetworkInformation;
 using System.Net;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using Newtonsoft.Json;
 using System.Threading;
 using System.Windows;
@@ -30,59 +32,82 @@ namespace Insta_DM_Bot_server_wpf
         public static bool ConnectionToServer;
 
         //URLs
-        const string fetchJob = "https://instagram.one2.ir/api/fetchJob";
-        const string sendDirect = "https://instagram.one2.ir/api/sendDirect";
-        const string cancelJob = "https://instagram.one2.ir/api/cancleJob";
-        const string jumpTarget = "https://instagram.one2.ir/api/jumpTarget";
-        const string checkNet = "https://instagram.one2.ir";
-        const string Error = "https://instagram.one2.ir/api/error";
-        const string challange = "https://instagram.one2.ir/api/challeng";
-        const string SuccesfulWorker = "https://instagram.one2.ir/api/reportJob";
+        private const string BaseUrl = "https://devbot.one2.ir/api/";
+        const string FetchUrl = BaseUrl + "client/fetch";
+        const string UpdateUrl = BaseUrl + "client/update";
+        const string LogUrl = BaseUrl + "client/log";
+        const string NetworkUrl = BaseUrl + "client/network";
 
         //Xpaths
         public static string xpathSaveFilePath = "./App/Xpath.bin";
         public static Xpath? xpaths = new Xpath();
 
 
-        public static void GetUserFromServer(bool firstTime)
+        public class Task
+        {
+            public bool status;
+            public data data;
+        }
+
+        public class data
+        {
+            public task task;
+            public List<target> targets;
+        }
+
+        public class task
+        {
+            public string uid;
+            public string username;
+            public string password;
+        }
+
+        public class target
+        {
+            public string uid;
+            public string username;
+            public string message;
+        }
+
+        public static async System.Threading.Tasks.Task FetchTask(bool firstTime)
         {
             try
             {
-                var webClient = new WebClient();
-                var result = webClient.DownloadString(fetchJob);
-
-                dynamic stuff = JsonConvert.DeserializeObject(result);
-                if (stuff.status != "true") return;
-                int jobId = stuff.jobId;
-                string user = stuff.worker.username;
-                string pass = stuff.worker.password;
-
-                var targets = new List<string>();
-                var messages = new List<string?>();
-                foreach (var target in stuff.targets)
+                using (HttpClient httpClient = new HttpClient())
                 {
-                    targets.Add((string)target);
-                }
+                    // Set the token header
+                    httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", "1241");
 
-                foreach (var message in stuff.messages)
-                {
-                    var htmlText = (string)message.text;
-                    var text = htmlText.Replace("/<[^>] +>/ g", "");
-                    text = text.Replace("<br>", "\n");
-                    messages.Add(text);
-                }
+                    // Make the GET request
+                    HttpResponseMessage response = await httpClient.GetAsync(FetchUrl);
+                    Console.WriteLine(response.IsSuccessStatusCode);
 
-                var waitTime = 7 * 60 * 1000;
-                if (firstTime)
-                {
-                    waitTime = (Queue.Count) * NewWindowWaitTime;
-                }
+                    if (response.IsSuccessStatusCode)
+                    {
+                        string responseBody = await response.Content.ReadAsStringAsync();
+                        var fetchedJob = JsonConvert.DeserializeObject<Task>(responseBody);
+                        if (!fetchedJob.status) return;
+                        var taskId = fetchedJob.data.task.uid;
+                        string user = fetchedJob.data.task.username;
+                        string pass = fetchedJob.data.task.password;
+                        var targetsArray = new List<target>(fetchedJob.data.targets);
 
-                if (waitTime < 0) waitTime = 0;
-                var newUser = new User(jobId, user, pass, targets, messages, stuff.targets, waitTime);
-                Manager.Queue.Enqueue(newUser);
+                        var waitTime = 7 * 60 * 1000;
+                        if (firstTime)
+                        {
+                            waitTime = (Queue.Count) * NewWindowWaitTime;
+                        }
+
+                        if (waitTime < 0) waitTime = 0;
+                        var newUser = new User(taskId, user, pass, targetsArray, waitTime);
+                        Queue.Enqueue(newUser);
+                    }
+                    else
+                    {
+                        MessageBox.Show("Request failed with status code: " + response.StatusCode);
+                    }
+                }
             }
-
             catch (Exception e)
             {
                 Debug.Log(e.ToString());
@@ -94,7 +119,7 @@ namespace Insta_DM_Bot_server_wpf
         {
             for (var i = 0; i < count; i++)
             {
-                Task.Run(
+                System.Threading.Tasks.Task.Run(
                     () =>
                     {
                         if (Queue.Count > 0)
@@ -110,32 +135,47 @@ namespace Insta_DM_Bot_server_wpf
 
         public static bool IsConnectedToServer()
         {
-
             try
             {
                 using var client = new WebClient();
-                using (client.OpenRead(checkNet))
+                using (client.OpenRead(NetworkUrl))
                     return true;
             }
             catch
             {
                 return false;
             }
-
         }
 
-        public static void ChangeTargetStatusInServer(string target, string workerUserName, int jobId)
+        public static async void ServerLog(string uid, string status)
         {
-            Debug.SendUser(target, workerUserName, jobId.ToString(), true);
+            // Debug.SendUser(target, workerUserName, jobId.ToString(), true);
+            var formData = new Dictionary<string, string>
+            {
+                { "uid", uid },
+                { "status", status }
+            };
 
             try
             {
-                var get = sendDirect + "?target=" + target + "&worker=" + workerUserName + "&job=" + jobId;
-                var client = new WebClient();
-                client.QueryString.Add("target", target);
-                client.QueryString.Add("worker", workerUserName);
-                client.QueryString.Add("job", jobId.ToString());
-                client.DownloadString(sendDirect);
+                using (HttpClient httpClient = new HttpClient())
+                {
+                    // Set the token header
+                    httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", "1241");
+
+                    // Make the GET request
+                    var formContent = new FormUrlEncodedContent(formData);
+                    var response = await httpClient.GetAsync(LogUrl + @"?uid=" + uid + @"&status=" + status);
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        MessageBox.Show(await response.Content.ReadAsStringAsync() + "uid:"+uid + "     status:" +status);
+                    }
+                    else
+                    {
+                        Console.WriteLine("Request failed with status code: " + response.StatusCode);
+                    }
+                }
             }
             catch (Exception e)
             {
@@ -145,7 +185,6 @@ namespace Insta_DM_Bot_server_wpf
 
         public static bool TryTilGetConnection()
         {
-
             var time = new TimeSpan(1, 0, 0);
             var dt = DateTime.Now + time;
             do
@@ -156,175 +195,39 @@ namespace Insta_DM_Bot_server_wpf
                 return DateTime.Now < dt;
             } while (true);
         }
-
-        public static void CancelWorker(dynamic targets, string worker, string password, string jobId,
-            ErrorCode errCode)
+        
+        public static async void Update(string uid, string status)
         {
             try
             {
-                var client = new WebClient();
-                var res = JsonConvert.SerializeObject(targets);
-                client.QueryString.Add("target", res);
-                client.QueryString.Add("worker", worker);
-                client.QueryString.Add("jobId", jobId);
-                client.QueryString.Add("errCode", errCode.GetHashCode().ToString());
-                client.QueryString.Add("password", password);
-                client.DownloadString(cancelJob);
-            }
-            catch (Exception e)
-            {
-                Debug.Log(e.ToString());
-            }
-        }
-
-        public static void FailedSending(string failedTarget, string worker, int jobId)
-        {
-            Debug.SendUser(failedTarget, worker, jobId.ToString(), false);
-
-
-            try
-            {
-                var client = new WebClient();
-                client.QueryString.Add("target", failedTarget);
-                client.QueryString.Add("worker", worker);
-                client.QueryString.Add("jobId", jobId.ToString());
-                client.DownloadString(jumpTarget);
-            }
-            catch (Exception e)
-            {
-                Debug.Log(e.ToString());
-            }
-        }
-
-        public static void SendError(string exception, string worker, int jobId)
-        {
-            try
-            {
-                var client = new WebClient();
-                client.QueryString.Add("error", exception);
-                client.QueryString.Add("worker", worker);
-                client.QueryString.Add("jobId", jobId.ToString());
-                client.DownloadString(Error);
-            }
-            catch (Exception e)
-            {
-                Debug.Log(e.ToString());
-            }
-        }
-
-        public static void BanUser(string worker, int jobId)
-        {
-            try
-            {
-                var client = new WebClient();
-                client.QueryString.Add("worker", worker);
-                client.QueryString.Add("jobId", jobId.ToString());
-                client.DownloadString(challange);
-            }
-            catch (Exception e)
-            {
-                Debug.Log(e.ToString());
-            }
-        }
-
-        public static void LoadXpaths()
-        {
-            var stuff = FileManager.ReadFromBinaryFile<Xpath>(xpathSaveFilePath);
-            xpaths = stuff;
-
-        }
-
-        public static void UpdateXpaths()
-        {
-            Console.WriteLine("Started updateing");
-            try
-            {
-                xpaths = new Xpath();
-                var webClient = new WebClient();
-                var result = webClient.DownloadString("https://instagram.one2.ir/api/xPath");
-
-                dynamic stuff = JsonConvert.DeserializeObject(result);
-
-                foreach (var xpath in stuff)
+                using (HttpClient httpClient = new HttpClient())
                 {
-                    switch (xpath.section.ToString())
+                    // Set the token header
+                    httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", "1241");
+                    var formData = new Dictionary<string, string>
                     {
-                        case "username":
-                            xpaths.username.Add(xpath.xPath.ToString());
-                            break;
-                        case "password":
-                            xpaths.password.Add(xpath.xPath.ToString());
-                            break;
-                        case "ErrorText":
-                            xpaths.ErrorText.Add(xpath.xPath.ToString());
-                            break;
-                        case "saveInfo":
-                            xpaths.saveInfo.Add(xpath.xPath.ToString());
-                            break;
-                        case "notification":
-                            xpaths.notification.Add(xpath.xPath.ToString());
-                            break;
-                        case "newDirect":
-                            xpaths.newDirect.Add(xpath.xPath.ToString());
-                            break;
-                        case "targetInput":
-                            xpaths.targetInput.Add(xpath.xPath.ToString());
-                            break;
-                        case "selectUser":
-                            xpaths.selectUser.Add(xpath.xPath.ToString());
-                            break;
-                        case "NextButtom":
-                            xpaths.NextButtom.Add(xpath.xPath.ToString());
-                            break;
-                        case "TextArea":
-                            xpaths.TextArea.Add(xpath.xPath.ToString());
-                            break;
-                        case "allowCookies":
-                            xpaths.allowCookies.Add(xpath.xPath.ToString());
-                            break;
+                        { "taskId", uid },
+                        { "status", status }
+                    };
+                    // Make the GET request
+                    var formContent = new FormUrlEncodedContent(formData);
+
+                    var response = await httpClient.PostAsync(UpdateUrl, formContent);
+
+                    if (response.IsSuccessStatusCode)
+                    {
+//ignore
+                    }
+                    else
+                    {
+                        Console.WriteLine("Request failed with status code: " + response.StatusCode);
                     }
                 }
-
-                FileManager.WriteToBinaryFile<Xpath>(xpathSaveFilePath, xpaths, true);
-                Console.WriteLine("Xpathes updated");
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.Message);
-                LoadXpaths();
+                Debug.Log(e.ToString());
             }
-        }
-
-        public static bool SendWorkerEnd(string worker, int jobId, List<string> targets)
-        {
-            var succ = true;
-            int tryTimes = 0;
-            do
-            {
-                try
-                {
-                    var client = new WebClient();
-                    var res = JsonConvert.SerializeObject(targets);
-                    var result = client.DownloadString("https://instagram.one2.ir/api/reportJob?jobId=" + jobId +
-                                                       "&worker=" + worker + "&targets=" + res);
-                    return result.Contains("true");
-                }
-                catch (Exception e)
-                {
-                    Debug.Log(e.ToString());
-                    tryTimes++;
-                    if (tryTimes > 6)
-                    {
-                        succ = false;
-                    }
-                }
-
-                Thread.Sleep(50000);
-            } while (succ);
-
-            MainWindow.ShowMessage("Couldn't send request to server!", " Internal error",
-                System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
-            return false;
         }
 
         public static void CheckRegistration()

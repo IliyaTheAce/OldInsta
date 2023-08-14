@@ -1,11 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Threading;
 using System.Threading.Tasks;
 using OpenQA.Selenium;
-using OpenQA.Selenium.DevTools.V111.IndexedDB;
-using OpenQA.Selenium.Interactions;
-
 namespace Insta_DM_Bot_server_wpf;
 
 public class Humanize

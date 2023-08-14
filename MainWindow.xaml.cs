@@ -27,13 +27,13 @@ namespace Insta_DM_Bot_server_wpf
             connectionTimer.Start();
             FileManager.CheckFilesAndDirectories();
         }
-        private void Button_Click(object sender, RoutedEventArgs e)
+        private async void Button_Click(object sender, RoutedEventArgs e)
         {
             var dialog = MessageBox.Show("Start Sending?", "Did you check everything?", MessageBoxButton.YesNo, MessageBoxImage.Question);
             if (dialog == MessageBoxResult.No) return;
             for (int i = 0; i < Manager.DriverCount; i++)
             {
-                Manager.GetUserFromServer(true);
+               await Manager.FetchTask(true);
             }
             Thread.Sleep(5000);
             Manager.StartSending(Manager.DriverCount);

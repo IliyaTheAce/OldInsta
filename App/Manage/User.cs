@@ -17,39 +17,30 @@ namespace Insta_DM_Bot_server_wpf
 
         private readonly string _username;
         private readonly string _password;
-        private readonly List<string> _users;
-        private readonly int _jobId;
-        private readonly List<string?> _messages;
-        private string? _messageTemp;
-        private readonly dynamic _targets;
+        private readonly List<Manager.target> _targets;
 
-        public bool isDead;
-        private static ErrorCode errCode = ErrorCode.FreeWorker;
-
+        public bool isDead; 
         private int _tryTimes;
-        private int SomethingWentWrongTimes;
         private bool _successful = true;
         private bool netDisconnected;
         private bool gotBanned;
         private List<string> _userTemp = new List<string>();
+        private string taskId;
 
         private int failedTimes = 0;
-        public User(int jobId, string username, string password, List<string> targets, List<string?> messages,
-            dynamic jsonTargets, int waitTime)
+        public User(string taskId, string username, string password, List<Manager.target> targets, int waitTime)
         {
             _username = username;
             _password = password;
-            _users = targets;
-            _messages = messages;
-            _jobId = jobId;
-            this._targets = jsonTargets;
             _waitTime = waitTime;
+            _targets = targets;
+            this.taskId = taskId;
         }
 
 
         //Timer stuff
         private Timer _timer;
-        const float TimerInterval = 9;
+        const float TimerInterval = 10;
         private bool hasSuccsesfulDirect = false;
 
         private void TimerInitialize()
@@ -75,8 +66,7 @@ namespace Insta_DM_Bot_server_wpf
                 isDead = true;
                 _timer.Stop();
                 _timer.Dispose();
-                StartNewDriver();
-                errCode = ErrorCode.Timer;
+                StartNewDriver(true);
             }
 
             hasSuccsesfulDirect = false;
@@ -97,33 +87,35 @@ namespace Insta_DM_Bot_server_wpf
             TimerInitialize();
             if (!SignIn(_username, _password))
             {
-                StartNewDriver();
+                StartNewDriver(false);
                 return false;
             }
 
             if (isDead) return false;
             if (!PrepareForSendDirects())
             {
-                StartNewDriver();
+                StartNewDriver(false);
                 return false;
             }
 
             if (isDead) return false;
 
-            if (!SendMessage(_users.ToArray(), _messages))
+            if (!SendMessage())
             {
-                StartNewDriver();
+                StartNewDriver(false);
                 return false;
             }
 
             if (isDead) return false;
 
             _driver.Quit();
-            if (!Manager.SendWorkerEnd(_username, _jobId, _userTemp)) return false;
-
             isDead = true;
+            Manager.Update(taskId , "200");
+
             if (Manager.IsPaused) return _successful;
-            Manager.GetUserFromServer(false);
+            if (isDead) return false;
+            isDead = true;
+            Manager.FetchTask(false);
             Thread.Sleep(5000);
             if (Manager.Queue.Count > 0)
             {
@@ -133,16 +125,26 @@ namespace Insta_DM_Bot_server_wpf
             return _successful;
         }
 
-        void StartNewDriver()
+        async void StartNewDriver(bool timer)
         {
             _driver?.Quit();
             if (!gotBanned)
-                Manager.CancelWorker(_targets, _username, _password, _jobId.ToString(), errCode);
+            {
+                if (timer)
+                {
+                    Manager.Update(taskId, "520");
+                }
+                else
+                {
+                    Manager.Update(taskId, "510");
+                }
+            }
+
             isDead = true;
 
             if (Manager.IsPaused) return;
             Thread.Sleep(2000);
-            Manager.GetUserFromServer(true);
+            await Manager.FetchTask(true);
             Thread.Sleep(5000);
             Manager.StartSending(1);
         }
@@ -216,21 +218,15 @@ namespace Insta_DM_Bot_server_wpf
             {
                 var errorText = _driver?.FindElement(By.Id("slfErrorAlert")).Text;
                 Thread.Sleep(5000);
-                if (errorText.Contains("username"))
+                if (errorText.Contains("username") || errorText.Contains("password") || errorText.Contains("connect") || errorText.Contains("problem"))
                 {
-                    errCode = ErrorCode.UserProb;
-                }
-                else if (errorText.Contains("password"))
-                {
-                    errCode = ErrorCode.PassProb;
-                }
-                else if (errorText.Contains("connect") || errorText.Contains("problem"))
-                {
-                    errCode = ErrorCode.FreeWorker;
+                    Manager.Update(taskId, "510");
+                    gotBanned = true;
+                    return false;
                 }
                 else if (errorText.Contains("terms"))
                 {
-                    Manager.BanUser(username, _jobId);
+                    Manager.Update(taskId, "530");
                     gotBanned = true;
                     return false;
                 }
@@ -297,7 +293,7 @@ namespace Insta_DM_Bot_server_wpf
 
             if (_driver.Url.Contains("challenge") || _driver.Url.Contains("suspend") || _driver.Url.Contains("login"))
             {
-                Manager.BanUser(username, _jobId);
+                Manager.Update(taskId, "530");
                 gotBanned = true;
                 return false;
             }
@@ -317,9 +313,7 @@ namespace Insta_DM_Bot_server_wpf
                 {
                     _driver?.Navigate().Refresh();
                     goto Prepare;
-                }
-
-                errCode = ErrorCode.FreeWorker;
+                } 
                 return false;
             }
 
@@ -336,7 +330,7 @@ namespace Insta_DM_Bot_server_wpf
             return true;
         }
 
-        private bool SendMessage(string[] targets, List<string?> message)
+        private bool SendMessage()
         {
             //Home screen Shortcut
             try
@@ -362,9 +356,7 @@ namespace Insta_DM_Bot_server_wpf
 
             Thread.Sleep(5000);
 
-            for (var i = 0; i < targets.Length; i++)
-            {
-
+            foreach (var target in _targets){
                 if (failedTimes >= 5)
                 {
                     //TODO: Change this
@@ -378,10 +370,9 @@ namespace Insta_DM_Bot_server_wpf
                 }
                 catch (Exception e)
                 {
-                    Manager.FailedSending(_users[i], _username, _jobId);
+                    Manager.ServerLog(target.uid, "610");
                     Debug.Log(e.Message);
                     PrepareForSendDirects();
-                    SomethingWentWrongTimes++;
                     failedTimes++;
                     failedTimes++;
                     continue;
@@ -391,14 +382,13 @@ namespace Insta_DM_Bot_server_wpf
                 //Search bar
                 try
                 {
-                    _driver?.FindElement(By.Name("queryBox")).SendKeys(targets[i]);
+                    _driver?.FindElement(By.Name("queryBox")).SendKeys(target.username);
                 }
                 catch (Exception e)
                 {
-                    Manager.FailedSending(_users[i], _username, _jobId);
+                    Manager.ServerLog(target.uid, "610");
                     // Debug.Log(e.Message);
-                    PrepareForSendDirects();
-                    SomethingWentWrongTimes++;
+                    PrepareForSendDirects(); 
                     continue;
                 }
 
@@ -418,10 +408,9 @@ namespace Insta_DM_Bot_server_wpf
                         Debug.Log(e.Message);
 
                         Thread.Sleep(10000);
-                        if (i >= 6)
+                        if (j >= 6)
                         {
                             PrepareForSendDirects();
-                            SomethingWentWrongTimes++;
                             failedTimes++;
                         }
                     }
@@ -429,7 +418,7 @@ namespace Insta_DM_Bot_server_wpf
 
                 if (!success)
                 {
-                    Manager.FailedSending(_users[i], _username, _jobId);
+                    Manager.ServerLog(target.uid, "610");
                 }
 
 
@@ -442,10 +431,9 @@ namespace Insta_DM_Bot_server_wpf
                 }
                 catch (Exception e)
                 {
-                    Manager.FailedSending(_users[i], _username, _jobId);
+                    Manager.ServerLog(target.uid, "610");
                     // Debug.Log(e.Message);
                     PrepareForSendDirects();
-                    SomethingWentWrongTimes++;
                     failedTimes++;
                     continue;
                 }
@@ -470,7 +458,6 @@ namespace Insta_DM_Bot_server_wpf
                         goto ClickNewDirect;
                     }
 
-                    errCode = ErrorCode.Halfway;
                     return false;
                 }
                 catch (Exception e)
@@ -500,15 +487,14 @@ namespace Insta_DM_Bot_server_wpf
 
                 try
                 {
-                    SomethingWentWrongTimes = 0;
-                    textField?.SendKeys(message[random.Next(0, message.Count)]);
+                    textField?.SendKeys(target.message);
                     Thread.Sleep(1000);
                     textField?.SendKeys(Keys.Enter);
                     hasSuccsesfulDirect = true;
                     _tryTimes = 0;
                     failedTimes = 0;
-                    Manager.ChangeTargetStatusInServer(targets[i], _username, _jobId);
-                    _userTemp.Add(targets[i]);
+                    Manager.ServerLog(target.uid, "200");
+                    _userTemp.Add(target.username);
                 }
                 catch (Exception e)
                 {
@@ -526,7 +512,7 @@ namespace Insta_DM_Bot_server_wpf
                 catch (Exception e)
                 {
                     Debug.Log(e.Message);
-                    Thread.Sleep(180000);
+                    throw;
                 }
 
                 // Thread.Sleep(random.Next(Manager.WaitMin, Manager.WaitMax));
