@@ -212,7 +212,7 @@ namespace Insta_DM_Bot_server_wpf
                     // Make the GET request
                     var formContent = new FormUrlEncodedContent(formData);
 
-                    var response = await httpClient.PostAsync(UpdateUrl, formContent);
+                    var response = await httpClient.GetAsync(UpdateUrl + "?taskId=" + uid + "&Status=" + status);
 
                     if (response.IsSuccessStatusCode)
                     {
