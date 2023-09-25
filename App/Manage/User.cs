@@ -379,10 +379,24 @@ namespace Insta_DM_Bot_server_wpf
                     Manager.Update(taskId, "560");
                 }
                 ClickNewDirect:
-                //New Direct Button
+                //Find The User
                 try
                 {
-                    _driver?.FindElement(By.CssSelector(@".xexx8yu > .x1lliihq")).Click();
+                    _driver?.Navigate().GoToUrl($"https://www.instagram.com/{target.username}");
+                }
+                catch (Exception e)
+                {
+                    Manager.ServerLog(target.uid, "610");
+                    Debug.Log(e.Message);
+                    PrepareForSendDirects();
+                    failedTimes++;
+                    failedTimes++;
+                    continue;
+                }         
+                //Message button
+                try
+                {
+                    _driver?.FindElement(By.XPath("//button[contains(.,'Message')]")).Click();
                 }
                 catch (Exception e)
                 {
@@ -393,80 +407,9 @@ namespace Insta_DM_Bot_server_wpf
                     failedTimes++;
                     continue;
                 }
-
-                Thread.Sleep(1000);
-                //Search bar
-                try
-                {
-                    _driver?.FindElement(By.Name("queryBox")).SendKeys(target.username);
-                }
-                catch (Exception e)
-                {
-                    Manager.ServerLog(target.uid, "610");
-                    // Debug.Log(e.Message);
-                    PrepareForSendDirects(); 
-                    continue;
-                }
-
-                Thread.Sleep(5000);
-                //Select first contact on list
-                var success = false;
-                for (int j = 0; j < 7; j++)
-                {
-                    try
-                    {
-                        _driver?.FindElement(By.CssSelector(".x1cy8zhl")).Click();
-                        success = true;
-                        break;
-                    }
-                    catch (Exception e)
-                    {
-                        Debug.Log(e.Message);
-
-                        Thread.Sleep(10000);
-                        if (j >= 6)
-                        {
-                            success = true;
-    
-                        }
-                    }
-                }
-
-                if (!success)
-                {
-                    Manager.ServerLog(target.uid, "611");
-                    failedToSelectContactTimes++;
-                    if (failedToSelectContactTimes >= 4)
-                    {
-                        Manager.Update(taskId, "560");
-                    }
-                    PrepareForSendDirects();
-                    failedTimes++;
-                }
-
-
-                Thread.Sleep(1000);
-
-                //Chat button
-                try
-                {
-                    _driver?.FindElement(By.CssSelector(".xt0psk2")).Click();
-                }
-                catch (Exception e)
-                {
-                    Manager.ServerLog(target.uid, "610");
-                    // Debug.Log(e.Message);
-                    PrepareForSendDirects();
-                    failedTimes++;
-                    continue;
-                }
-
-                Thread.Sleep(5000);
-
-                var random = new Random();
-
+                
                 IWebElement? textField = null;
-                Thread.Sleep(5000);
+                Thread.Sleep(10000);
 
                 try
                 {
