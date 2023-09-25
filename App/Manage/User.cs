@@ -393,20 +393,22 @@ namespace Insta_DM_Bot_server_wpf
                     failedTimes++;
                     continue;
                 }         
-                //Message button
+                //Find The Message Button
                 try
                 {
-                    _driver?.FindElement(By.XPath("//button[contains(.,'Message')]")).Click();
+                    _driver?.Navigate().GoToUrl($"https://ig.me/m/{target.username}");
                 }
                 catch (Exception e)
                 {
-                    Manager.ServerLog(target.uid, "610");
-                    Debug.Log(e.Message);
-                    PrepareForSendDirects();
-                    failedTimes++;
-                    failedTimes++;
-                    continue;
+
+                        Manager.ServerLog(target.uid, "610");
+                        Debug.Log(e.Message);
+                        PrepareForSendDirects();
+                        failedTimes++;
+                        failedTimes++;
+                        continue;
                 }
+            
                 
                 IWebElement? textField = null;
                 Thread.Sleep(10000);

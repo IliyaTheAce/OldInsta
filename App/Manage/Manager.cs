@@ -80,7 +80,6 @@ namespace Insta_DM_Bot_server_wpf
 
                     // Make the GET request
                     HttpResponseMessage response = await httpClient.GetAsync(FetchUrl);
-                    Console.WriteLine(response.IsSuccessStatusCode);
 
                     if (response.IsSuccessStatusCode)
                     {
@@ -167,11 +166,7 @@ namespace Insta_DM_Bot_server_wpf
                     var formContent = new FormUrlEncodedContent(formData);
                     var response = await httpClient.GetAsync(LogUrl + @"?uid=" + uid + @"&status=" + status);
 
-                    if (response.IsSuccessStatusCode)
-                    {
-                        MessageBox.Show(await response.Content.ReadAsStringAsync() + "uid:"+uid + "     status:" +status);
-                    }
-                    else
+                    if (!response.IsSuccessStatusCode)
                     {
                         Console.WriteLine("Request failed with status code: " + response.StatusCode);
                     }
