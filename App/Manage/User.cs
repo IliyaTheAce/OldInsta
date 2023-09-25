@@ -26,7 +26,7 @@ namespace Insta_DM_Bot_server_wpf
         private bool gotBanned;
         private List<string> _userTemp = new List<string>();
         private string taskId;
-
+        private int failedToSelectContactTimes = 0;
         private int failedTimes = 0;
         public User(string taskId, string username, string password, List<Manager.target> targets, int waitTime)
         {
@@ -218,9 +218,26 @@ namespace Insta_DM_Bot_server_wpf
             {
                 var errorText = _driver?.FindElement(By.Id("slfErrorAlert")).Text;
                 Thread.Sleep(5000);
-                if (errorText.Contains("username") || errorText.Contains("password") || errorText.Contains("connect") || errorText.Contains("problem"))
+                if (errorText.Contains("username"))
                 {
-                    Manager.Update(taskId, "510");
+                    Manager.Update(taskId, "511");
+                    gotBanned = true;
+                    return false;
+                }
+                else if (errorText.Contains("password"))
+                {
+                    Manager.Update(taskId, "512");
+                    gotBanned = true;
+                    return false;
+                }
+                else if(errorText.Contains("connect"))
+                {
+                    Manager.Update(taskId, "513");
+                    gotBanned = true;
+                    return false;
+                }else if (errorText.Contains("problem"))
+                {
+                    Manager.Update(taskId, "514");
                     gotBanned = true;
                     return false;
                 }
@@ -359,8 +376,7 @@ namespace Insta_DM_Bot_server_wpf
             foreach (var target in _targets){
                 if (failedTimes >= 5)
                 {
-                    //TODO: Change this
-                    // Manager.CancelWorker(targets - _userTemp.ToArray());
+                    Manager.Update(taskId, "560");
                 }
                 ClickNewDirect:
                 //New Direct Button
@@ -410,15 +426,22 @@ namespace Insta_DM_Bot_server_wpf
                         Thread.Sleep(10000);
                         if (j >= 6)
                         {
-                            PrepareForSendDirects();
-                            failedTimes++;
+                            success = true;
+    
                         }
                     }
                 }
 
                 if (!success)
                 {
-                    Manager.ServerLog(target.uid, "610");
+                    Manager.ServerLog(target.uid, "611");
+                    failedToSelectContactTimes++;
+                    if (failedToSelectContactTimes >= 4)
+                    {
+                        Manager.Update(taskId, "560");
+                    }
+                    PrepareForSendDirects();
+                    failedTimes++;
                 }
 
 
