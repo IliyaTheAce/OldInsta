@@ -6,6 +6,7 @@ using System.Drawing;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
+using OpenQA.Selenium.Chromium;
 using Timer = System.Timers.Timer;
 
 namespace Insta_DM_Bot_server_wpf
@@ -80,10 +81,12 @@ namespace Insta_DM_Bot_server_wpf
         {
             Thread.Sleep(_waitTime);
             var options = new ChromeOptions();
-            options.AddArgument(
+            options.AddArgument("--auto-open-devtools-for-tabs");
+            options.EnableMobileEmulation("iPhone 12 Pro");
+             options.AddArgument(
                 "--user-agent=Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1");
             _driver = new ChromeDriver(options);
-            _driver.Manage().Window.Size = new Size(516, 703);
+            _driver.Manage().Window.Maximize();
             TimerInitialize();
             if (!SignIn(_username, _password))
             {
@@ -373,101 +376,100 @@ namespace Insta_DM_Bot_server_wpf
 
             Thread.Sleep(5000);
 
-            foreach (var target in _targets){
+            for (int i =0; i<= _targets.Count;){
                 if (failedTimes >= 5)
                 {
                     Manager.Update(taskId, "560");
                 }
                 ClickNewDirect:
-                //Find The User
+                //Go to the post
                 try
                 {
-                    _driver?.Navigate().GoToUrl($"https://www.instagram.com/{target.username}");
+                    _driver?.Navigate().GoToUrl("https://www.instagram.com/reel/CxPZOvBpBtp/?utm_source=ig_web_copy_link");
+                    Thread.Sleep(10000);
                 }
                 catch (Exception e)
                 {
-                    Manager.ServerLog(target.uid, "610");
+                    Manager.ServerLog(_targets[i].uid, "610");
                     Debug.Log(e.Message);
                     PrepareForSendDirects();
                     failedTimes++;
                     failedTimes++;
                     continue;
                 }         
-                //Find The Message Button
+                //Click on Share button
                 try
                 {
-                    _driver?.Navigate().GoToUrl($"https://ig.me/m/{target.username}");
+                    _driver?.FindElement(By.ClassName("_abl-")).Click();
                 }
                 catch (Exception e)
                 {
 
-                        Manager.ServerLog(target.uid, "610");
+                        Manager.ServerLog(_targets[i].uid, "610");
                         Debug.Log(e.Message);
                         PrepareForSendDirects();
                         failedTimes++;
                         failedTimes++;
                         continue;
                 }
-            
-                
-                IWebElement? textField = null;
-                Thread.Sleep(10000);
+                Thread.Sleep(5000);
 
-                try
+                for (int j = 0; j < 5; j++)
                 {
-                    textField = _driver?.FindElement(By.ClassName("notranslate"));
-                }
-                catch (WebDriverTimeoutException)
-                {
-                    netDisconnected = true;
-                    if (Manager.TryTilGetConnection())
+                    //Pasting username on the input
+                    var queryBox = _driver?.FindElement(By.Name("queryBox"));
+                    try
                     {
-                        _driver?.Navigate().GoToUrl("https://www.instagram.com/direct/inbox");
-                        goto ClickNewDirect;
+                        queryBox?.SendKeys(_targets[i + j].username);
+                    }
+                    catch (Exception e)
+                    {
+
+                        Manager.ServerLog(_targets[i].uid, "610");
+                        Debug.Log(e.Message);
+                        PrepareForSendDirects();
+                        failedTimes++;
+                        failedTimes++;
+                        continue;
+                    }
+                    Thread.Sleep(10000);
+                    //Selecting first user
+                    try
+                    {
+                        _driver?.FindElement(By.Name("ContactSearchResultCheckbox")).Click();
+                    }
+                    catch (Exception e)
+                    {
+                        queryBox?.Clear();
+                        continue;
+
+                    }
+                    Thread.Sleep(5000);
+
+                    try
+                    {
+                        hasSuccsesfulDirect = true;
+                        _tryTimes = 0;
+                        failedTimes = 0;
+                        Manager.ServerLog(_targets[i+j].uid, "200");
+                        _userTemp.Add(_targets[i+j].username);
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.Log(e.Message);
                     }
 
-                    return false;
                 }
-                catch (Exception e)
-                {
-                    // try
-                    // {
-                    //     textField = _driver?.FindElement(By.XPath(
-                    //         "/html/body/div[1]/div/div/div/div[1]/div/div/div/div[1]/div[1]/section/div/div[2]/div/div/div[2]/div[2]/div/div[2]/div/div/div[2]/textarea"));
-                    // }
-                    // catch
-                    // {
-                    //     Debug.Log(e.Message);
-                    //     if (SomethingWentWrongTimes < 3)
-                    //     {
-                    //         Manager.FailedSending(_users[i], _username, _jobId);
-                    //         PrepareForSendDirects();
-                    //         SomethingWentWrongTimes++;
-                    //         continue;
-                    //     }
-                    //     else
-                    //     {
-                    //         errCode = ErrorCode.SWW;
-                    //         return false;
-                    //     }
-                    // }
-                }
-
                 try
                 {
-                    textField?.SendKeys(target.message);
-                    Thread.Sleep(1000);
-                    textField?.SendKeys(Keys.Enter);
-                    hasSuccsesfulDirect = true;
-                    _tryTimes = 0;
-                    failedTimes = 0;
-                    Manager.ServerLog(target.uid, "200");
-                    _userTemp.Add(target.username);
+                    _driver?.FindElement(By.CssSelector(".x1lq5wgf")).Click();
+                    Thread.Sleep(2000);
                 }
                 catch (Exception e)
                 {
-                    Debug.Log(e.Message);
+                    //ignored
                 }
+                i += 5;
 
                 Thread.Sleep(6000);
                 try
@@ -480,7 +482,6 @@ namespace Insta_DM_Bot_server_wpf
                 catch (Exception e)
                 {
                     Debug.Log(e.Message);
-                    throw;
                 }
 
                 // Thread.Sleep(random.Next(Manager.WaitMin, Manager.WaitMax));
