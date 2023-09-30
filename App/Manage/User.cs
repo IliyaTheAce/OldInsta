@@ -26,15 +26,17 @@ namespace Insta_DM_Bot_server_wpf
         private bool netDisconnected;
         private bool gotBanned;
         private List<string> _userTemp = new List<string>();
+        private List<Manager.Message> _messages = new ();
         private string taskId;
         private int failedToSelectContactTimes = 0;
         private int failedTimes = 0;
-        public User(string taskId, string username, string password, List<Manager.target> targets, int waitTime)
+        public User(string taskId, string username, string password, List<Manager.target> targets, int waitTime,List<Manager.Message> messages)
         {
             _username = username;
             _password = password;
             _waitTime = waitTime;
             _targets = targets;
+            _messages = messages;
             this.taskId = taskId;
         }
 
@@ -385,7 +387,7 @@ namespace Insta_DM_Bot_server_wpf
                 //Go to the post
                 try
                 {
-                    _driver?.Navigate().GoToUrl("https://www.instagram.com/reel/CxPZOvBpBtp/?utm_source=ig_web_copy_link");
+                    _driver?.Navigate().GoToUrl(_messages[i / 5].message);
                     Thread.Sleep(10000);
                 }
                 catch (Exception e)
@@ -393,7 +395,6 @@ namespace Insta_DM_Bot_server_wpf
                     Manager.ServerLog(_targets[i].uid, "610");
                     Debug.Log(e.Message);
                     PrepareForSendDirects();
-                    failedTimes++;
                     failedTimes++;
                     continue;
                 }         
@@ -417,7 +418,26 @@ namespace Insta_DM_Bot_server_wpf
                 for (int j = 0; j < 5; j++)
                 {
                     //Pasting username on the input
-                    var queryBox = _driver?.FindElement(By.Name("queryBox"));
+                    int trycount = 0;
+                    findingQueryBox:
+                    if (trycount >= 5)
+                    {
+                        Manager.ServerLog(_targets[i].uid, "610");
+                        PrepareForSendDirects();
+                        failedTimes++;
+                        continue;
+                    }
+                    IWebElement queryBox = null;
+                    try
+                    {
+                        queryBox= _driver?.FindElement(By.Name("queryBox"));
+                    }
+                    catch (Exception e)
+                    {
+                        trycount++;
+                        Thread.Sleep(5000);
+                        goto findingQueryBox;
+                    }
                     try
                     {
                         queryBox?.SendKeys(_targets[i + j].username);
@@ -428,7 +448,6 @@ namespace Insta_DM_Bot_server_wpf
                         Manager.ServerLog(_targets[i].uid, "610");
                         Debug.Log(e.Message);
                         PrepareForSendDirects();
-                        failedTimes++;
                         failedTimes++;
                         continue;
                     }

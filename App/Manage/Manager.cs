@@ -53,8 +53,13 @@ namespace Insta_DM_Bot_server_wpf
         {
             public task task;
             public List<target> targets;
+            public List<Message> messages;
         }
 
+        public class Message
+        {
+            public string message;
+        }
         public class task
         {
             public string uid;
@@ -90,7 +95,7 @@ namespace Insta_DM_Bot_server_wpf
                         string user = fetchedJob.data.task.username;
                         string pass = fetchedJob.data.task.password;
                         var targetsArray = new List<target>(fetchedJob.data.targets);
-
+                        var messageArray = new List<Message>(fetchedJob.data.messages);
                         var waitTime = 7 * 60 * 1000;
                         if (firstTime)
                         {
@@ -98,7 +103,7 @@ namespace Insta_DM_Bot_server_wpf
                         }
 
                         if (waitTime < 0) waitTime = 0;
-                        var newUser = new User(taskId, user, pass, targetsArray, waitTime);
+                        var newUser = new User(taskId, user, pass, targetsArray, waitTime , messageArray);
                         Queue.Enqueue(newUser);
                     }
                     else
@@ -207,15 +212,11 @@ namespace Insta_DM_Bot_server_wpf
                     // Make the GET request
                     var formContent = new FormUrlEncodedContent(formData);
 
-                    var response = await httpClient.GetAsync(UpdateUrl + "?taskId=" + uid + "&Status=" + status);
+                    var response = await httpClient.GetAsync(UpdateUrl + "?taskid=" + uid + "&status=" + status);
 
-                    if (response.IsSuccessStatusCode)
+                    if (!response.IsSuccessStatusCode)
                     {
-//ignore
-                    }
-                    else
-                    {
-                        Console.WriteLine("Request failed with status code: " + response.StatusCode);
+                        MessageBox.Show("Request failed with status code: " + response.StatusCode);
                     }
                 }
             }
