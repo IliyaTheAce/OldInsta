@@ -6,6 +6,7 @@ using System.Drawing;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
+using System.Windows;
 using OpenQA.Selenium.Chromium;
 using Timer = System.Timers.Timer;
 
@@ -49,10 +50,10 @@ namespace Insta_DM_Bot_server_wpf
         private void TimerInitialize()
         {
             if (_timer != null) _timer.Dispose();
-            _timer = new Timer(9 * 60000);
+            _timer = new Timer(5 * 60000);
             _timer.Elapsed += TimerElapsed;
             _timer.Enabled = true;
-            _timer.AutoReset = true;
+            _timer.AutoReset = false;
         }
 
         private void TimerElapsed(object sender, ElapsedEventArgs args)
@@ -83,12 +84,12 @@ namespace Insta_DM_Bot_server_wpf
         {
             Thread.Sleep(_waitTime);
             var options = new ChromeOptions();
-            options.AddArgument("--auto-open-devtools-for-tabs");
+            // options.AddArgument("--auto-open-devtools-for-tabs");
             options.EnableMobileEmulation("iPhone 12 Pro");
              options.AddArgument(
                 "--user-agent=Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1");
             _driver = new ChromeDriver(options);
-            _driver.Manage().Window.Maximize();
+            // _driver.Manage().Window.Maximize();
             TimerInitialize();
             if (!SignIn(_username, _password))
             {
@@ -215,6 +216,7 @@ namespace Insta_DM_Bot_server_wpf
 
             Thread.Sleep(2000);
             usernameInput?.SendKeys(username);
+            Thread.Sleep(2000);
             passwordInput?.SendKeys(password);
             Thread.Sleep(1000);
             passwordInput?.Submit();
@@ -295,7 +297,7 @@ namespace Insta_DM_Bot_server_wpf
             }
             catch (Exception e)
             {
-                Debug.Log(e.Message + "___ save info button not found");
+                // Debug.Log(e.Message + "___ save info button not found");
             }
 
             Thread.Sleep(5000);
@@ -306,7 +308,7 @@ namespace Insta_DM_Bot_server_wpf
             }
             catch (Exception e)
             {
-                Debug.Log(e.Message + "___ notification not now button not found");
+                // Debug.Log(e.Message + "___ notification not now button not found");
             }
 
             Thread.Sleep(5000);
@@ -327,17 +329,17 @@ namespace Insta_DM_Bot_server_wpf
         {
             Prepare:
             Thread.Sleep(5000);
-            if (!Manager.IsConnectedToInternet())
-            {
-                netDisconnected = true;
-
-                if (Manager.TryTilGetConnection())
-                {
-                    _driver?.Navigate().Refresh();
-                    goto Prepare;
-                } 
-                return false;
-            }
+            // if (!Manager.IsConnectedToInternet())
+            // {
+            //     netDisconnected = true;
+            //
+            //     if (Manager.TryTilGetConnection())
+            //     {
+            //         _driver?.Navigate().Refresh();
+            //         goto Prepare;
+            //     } 
+            //     return false;
+            // }
 
             try
             {
@@ -377,26 +379,31 @@ namespace Insta_DM_Bot_server_wpf
             }
 
             Thread.Sleep(5000);
+            if (_targets.Count % 5 != 0)
+            {
+                MessageBox.Show("تعداد تارگت ها حتما باید ضریب 5 باشد");
+                Manager.Update(taskId , "");
+                return false;
+            }
 
-            for (int i =0; i<= _targets.Count;){
+            var cycleCount = _targets.Count;
+        
+            for (int i =0; i<= cycleCount; i++){
                 if (failedTimes >= 5)
                 {
                     Manager.Update(taskId, "560");
                 }
-                ClickNewDirect:
                 //Go to the post
                 try
                 {
-                    _driver?.Navigate().GoToUrl(_messages[i / 5].message);
+                    _driver?.Navigate().GoToUrl(_messages[i].message);
                     Thread.Sleep(10000);
                 }
                 catch (Exception e)
                 {
-                    Manager.ServerLog(_targets[i].uid, "610");
-                    Debug.Log(e.Message);
-                    PrepareForSendDirects();
-                    failedTimes++;
-                    continue;
+                    MessageBox.Show("در تغییر url به پست مشکلی بوجود آمده");
+                    Manager.Update(taskId , "");
+                    return false;
                 }         
                 //Click on Share button
                 try
@@ -406,12 +413,9 @@ namespace Insta_DM_Bot_server_wpf
                 catch (Exception e)
                 {
 
-                        Manager.ServerLog(_targets[i].uid, "610");
-                        Debug.Log(e.Message);
-                        PrepareForSendDirects();
-                        failedTimes++;
-                        failedTimes++;
-                        continue;
+                    MessageBox.Show("دکمه شیر پیدا نشد ، xpath چک شود");
+                    Manager.Update(taskId , "");
+                    return false;
                 }
                 Thread.Sleep(5000);
 
@@ -422,12 +426,9 @@ namespace Insta_DM_Bot_server_wpf
                     findingQueryBox:
                     if (trycount >= 5)
                     {
-                        Manager.ServerLog(_targets[i].uid, "610");
-                        PrepareForSendDirects();
-                        failedTimes++;
-                        continue;
+                        Manager.Update(taskId, "");
                     }
-                    IWebElement queryBox = null;
+                    IWebElement queryBox;
                     try
                     {
                         queryBox= _driver?.FindElement(By.Name("queryBox"));
@@ -440,14 +441,13 @@ namespace Insta_DM_Bot_server_wpf
                     }
                     try
                     {
-                        queryBox?.SendKeys(_targets[i + j].username);
+                        queryBox?.SendKeys(_targets[(i * 5) + j].username);
                     }
                     catch (Exception e)
                     {
 
-                        Manager.ServerLog(_targets[i].uid, "610");
+                        Manager.ServerLog(_targets[(i * 5) + j].uid, "610");
                         Debug.Log(e.Message);
-                        PrepareForSendDirects();
                         failedTimes++;
                         continue;
                     }
@@ -460,37 +460,31 @@ namespace Insta_DM_Bot_server_wpf
                     catch (Exception e)
                     {
                         queryBox?.Clear();
+                        Manager.ServerLog(_targets[i*5 +j].uid,"611");
+                        Thread.Sleep(2000);
                         continue;
-
                     }
+                    Manager.ServerLog(_targets[i*5 +j].uid,"200");
+
                     Thread.Sleep(5000);
 
-                    try
-                    {
                         hasSuccsesfulDirect = true;
                         _tryTimes = 0;
                         failedTimes = 0;
-                        Manager.ServerLog(_targets[i+j].uid, "200");
-                        _userTemp.Add(_targets[i+j].username);
-                    }
-                    catch (Exception e)
-                    {
-                        Debug.Log(e.Message);
-                    }
-
                 }
                 try
                 {
                     _driver?.FindElement(By.CssSelector(".x1lq5wgf")).Click();
+
                     Thread.Sleep(2000);
                 }
                 catch (Exception e)
                 {
-                    //ignored
+                    MessageBox.Show("دکمه ارسال پیدا نشد، چک شود");
                 }
-                i += 5;
 
                 Thread.Sleep(6000);
+                TimerInitialize();
                 try
                 {
                     var randomScroll = new Random();

@@ -25,7 +25,7 @@
                         <materialDesign:BundledTheme/>
                     </Label.Resources>
                 </Label>
-                <Label Content="v 0.2" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#4CA9A9A9" Style="{DynamicResource MaterialDesignLabel}" Height="42" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Padding="0,4,0,0" Margin="5,0,0,0">
+                <Label Content="v 0.5 - Post Share" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#4CA9A9A9" Style="{DynamicResource MaterialDesignLabel}" Height="42" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Padding="0,4,0,0" Margin="5,0,0,0">
                     <Label.Resources>
                         <materialDesign:BundledTheme/>
                     </Label.Resources>
