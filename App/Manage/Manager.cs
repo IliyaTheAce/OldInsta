@@ -33,7 +33,7 @@ namespace Insta_DM_Bot_server_wpf
 
         //URLs
         private const string BaseUrl = "https://devbot.one2.ir/api/";
-        const string FetchUrl = BaseUrl + "client/fetch";
+        const string FetchUrl = BaseUrl + "client/fetch?type=link";
         const string UpdateUrl = BaseUrl + "client/update";
         const string LogUrl = BaseUrl + "client/log";
         const string NetworkUrl = BaseUrl + "client/network";
@@ -59,6 +59,7 @@ namespace Insta_DM_Bot_server_wpf
         public class Message
         {
             public string message;
+            public string link;
         }
         public class task
         {

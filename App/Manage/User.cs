@@ -396,7 +396,7 @@ namespace Insta_DM_Bot_server_wpf
                 //Go to the post
                 try
                 {
-                    _driver?.Navigate().GoToUrl(_messages[i].message);
+                    _driver?.Navigate().GoToUrl(_messages[i].link);
                     Thread.Sleep(10000);
                 }
                 catch (Exception e)
