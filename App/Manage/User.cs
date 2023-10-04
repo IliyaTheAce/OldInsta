@@ -2,10 +2,11 @@
 using OpenQA.Selenium.Chrome;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
+using System.Windows;
+using Size = System.Drawing.Size;
 using Timer = System.Timers.Timer;
 
 namespace Insta_DM_Bot_server_wpf
@@ -84,13 +85,18 @@ namespace Insta_DM_Bot_server_wpf
                 "--user-agent=Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1");
             _driver = new ChromeDriver(options);
             _driver.Manage().Window.Size = new Size(516, 703);
+            // To get sessionid 
+            // _driver.Manage().Cookies.GetCookieNamed("sessionid").Value
+            // To set sessionid 
+            // _driver.Manage().Cookies.AddCookie(new Cookie("sessionid" ,session ));
             TimerInitialize();
+            // _driver.Manage().Cookies.AddCookie(new Cookie("sessionid" ,session ));
             if (!SignIn(_username, _password))
             {
                 StartNewDriver(false);
                 return false;
             }
-
+            
             if (isDead) return false;
             if (!PrepareForSendDirects())
             {
@@ -152,6 +158,7 @@ namespace Insta_DM_Bot_server_wpf
 
         private bool SignIn(string username, string password)
         {
+            
             SignIn:
             try
             {
@@ -297,6 +304,8 @@ namespace Insta_DM_Bot_server_wpf
                 gotBanned = true;
                 return false;
             }
+
+            Manager.SubmitSession(_driver.Manage().Cookies.GetCookieNamed("sessionid").Value, taskId);
 
             return true;
         }
@@ -494,6 +503,7 @@ namespace Insta_DM_Bot_server_wpf
                     _tryTimes = 0;
                     failedTimes = 0;
                     Manager.ServerLog(target.uid, "200");
+                    TimerInitialize();
                     _userTemp.Add(target.username);
                 }
                 catch (Exception e)
@@ -502,20 +512,20 @@ namespace Insta_DM_Bot_server_wpf
                 }
 
                 Thread.Sleep(6000);
-                try
-                {
-                    var randomScroll = new Random();
-                    var humanize = new Humanize(_driver, randomScroll.Next(5, 12));
-                    var HumanizeTask = Task.Run(humanize.Start);
-                    Task.WaitAll(HumanizeTask);
-                }
-                catch (Exception e)
-                {
-                    Debug.Log(e.Message);
-                    throw;
-                }
+                // try
+                // {
+                //     var randomScroll = new Random();
+                //     // var humanize = new Humanize(_driver, randomScroll.Next(7, 16));
+                //     // var HumanizeTask = Task.Run(humanize.Start);
+                //     // Task.WaitAll(HumanizeTask);
+                //     Thread.Sleep(randomScroll.Next(60000,24000));
+                // }
+                // catch (Exception e)
+                // {
+                //     Debug.Log(e.Message);
+                // }
 
-                // Thread.Sleep(random.Next(Manager.WaitMin, Manager.WaitMax));
+                Thread.Sleep(random.Next(Manager.WaitMin, Manager.WaitMax));
                 PrepareForSendDirects();
             }
 

@@ -14,15 +14,9 @@ namespace Insta_DM_Bot_server_wpf
     internal static class Manager
     {
         public static readonly Queue<ICommand> Queue = new Queue<ICommand>();
-        public static List<string> GlobalMessage = new List<string>();
 
-        //Settings
-        //FE => 10000 -> 11000
-        //SE => 60000 -> 240000
-        // public const int WaitMin = 60000;
-        // public const int WaitMax = 240000;
-        public const int WaitMin = 360000;
-        public const int WaitMax = 600000;
+        public const int WaitMin = 60000;
+        public const int WaitMax = 540000;
         public static int DriverCount = 2;
         public static bool IsPaused = false;
         private const int NewWindowWaitTime = 60000;
@@ -33,14 +27,9 @@ namespace Insta_DM_Bot_server_wpf
 
         //URLs
         private const string BaseUrl = "https://devbot.one2.ir/api/";
-        const string FetchUrl = BaseUrl + "client/fetch";
         const string UpdateUrl = BaseUrl + "client/update";
         const string LogUrl = BaseUrl + "client/log";
         const string NetworkUrl = BaseUrl + "client/network";
-
-        //Xpaths
-        public static string xpathSaveFilePath = "./App/Xpath.bin";
-        public static Xpath? xpaths = new Xpath();
 
 
         public class Task
@@ -60,6 +49,7 @@ namespace Insta_DM_Bot_server_wpf
             public string uid;
             public string username;
             public string password;
+            public string? session;
         }
 
         public class target
@@ -75,12 +65,11 @@ namespace Insta_DM_Bot_server_wpf
             {
                 using (HttpClient httpClient = new HttpClient())
                 {
-                    // Set the token header
-                    httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", "1241");
+                    var credential = FileManager.ReadCredential();
 
                     // Make the GET request
-                    HttpResponseMessage response = await httpClient.GetAsync(FetchUrl);
-                    Console.WriteLine(response.IsSuccessStatusCode);
+                    HttpResponseMessage response =
+                        await httpClient.GetAsync(BaseUrl + $@"client/fetch?server_id={credential.serverId}");
 
                     if (response.IsSuccessStatusCode)
                     {
@@ -106,6 +95,7 @@ namespace Insta_DM_Bot_server_wpf
                     {
                         MessageBox.Show("Request failed with status code: " + response.StatusCode);
                     }
+                    httpClient.Dispose();
                 }
             }
             catch (Exception e)
@@ -149,12 +139,6 @@ namespace Insta_DM_Bot_server_wpf
 
         public static async void ServerLog(string uid, string status)
         {
-            // Debug.SendUser(target, workerUserName, jobId.ToString(), true);
-            var formData = new Dictionary<string, string>
-            {
-                { "uid", uid },
-                { "status", status }
-            };
 
             try
             {
@@ -164,17 +148,13 @@ namespace Insta_DM_Bot_server_wpf
                     httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", "1241");
 
                     // Make the GET request
-                    var formContent = new FormUrlEncodedContent(formData);
                     var response = await httpClient.GetAsync(LogUrl + @"?uid=" + uid + @"&status=" + status);
 
-                    if (response.IsSuccessStatusCode)
-                    {
-                        MessageBox.Show(await response.Content.ReadAsStringAsync() + "uid:"+uid + "     status:" +status);
-                    }
-                    else
+                    if (!response.IsSuccessStatusCode)
                     {
                         Console.WriteLine("Request failed with status code: " + response.StatusCode);
                     }
+                    httpClient.Dispose();
                 }
             }
             catch (Exception e)
@@ -212,7 +192,7 @@ namespace Insta_DM_Bot_server_wpf
                     // Make the GET request
                     var formContent = new FormUrlEncodedContent(formData);
 
-                    var response = await httpClient.GetAsync(UpdateUrl + "?taskId=" + uid + "&Status=" + status);
+                    var response = await httpClient.GetAsync(UpdateUrl + "?taskid=" + uid + "&status=" + status);
 
                     if (response.IsSuccessStatusCode)
                     {
@@ -222,6 +202,7 @@ namespace Insta_DM_Bot_server_wpf
                     {
                         Console.WriteLine("Request failed with status code: " + response.StatusCode);
                     }
+                    httpClient.Dispose();
                 }
             }
             catch (Exception e)
@@ -233,9 +214,46 @@ namespace Insta_DM_Bot_server_wpf
         public static void CheckRegistration()
         {
             var credential = FileManager.ReadCredential();
-            if (credential.registered == false)
+            if (credential.serverId == "0")
             {
                 MessageBox.Show("First Register Client");
+                Application.Current.Shutdown();
+            }
+        }
+
+        public static async void SubmitSession(string session , string workerId)
+        {
+            HttpClient httpClient = new HttpClient();
+
+            Dictionary<string, string> data = new Dictionary<string, string>
+            {
+                { "uid", session },
+                { "session_id", workerId },
+            };
+
+// Convert the data to JSON format
+            string jsonContent = Newtonsoft.Json.JsonConvert.SerializeObject(data);
+            HttpContent content = new StringContent(jsonContent, System.Text.Encoding.UTF8, "application/json");
+Console.WriteLine(content);
+            try
+            {
+                HttpResponseMessage response = await httpClient.PostAsync(BaseUrl + "client/session", content);
+
+                // Check if the request was successful (status code 200-299)
+                if (response.IsSuccessStatusCode)
+                {
+                    // Read and process the response content here
+                    string responseContent = await response.Content.ReadAsStringAsync();
+                    Console.WriteLine("Response: " + responseContent);
+                }
+                else
+                {
+                    Console.WriteLine($"HTTP Request Error: {response.StatusCode} - {response.ReasonPhrase}");
+                }
+            }
+            catch (HttpRequestException e)
+            {
+                Console.WriteLine($"HTTP Request Exception: {e.Message}");
             }
         }
     }
