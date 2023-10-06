@@ -2,6 +2,7 @@
 using OpenQA.Selenium.Chrome;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
@@ -27,12 +28,14 @@ namespace Insta_DM_Bot_server_wpf
         private bool gotBanned;
         private List<string> _userTemp = new List<string>();
         private string taskId;
+        private string session;
 
         private int failedTimes = 0;
-        public User(string taskId, string username, string password, List<Manager.target> targets, int waitTime)
+        public User(string taskId, string username, string password, List<Manager.target> targets, int waitTime,string session)
         {
             _username = username;
             _password = password;
+            this.session = session;
             _waitTime = waitTime;
             _targets = targets;
             this.taskId = taskId;
@@ -47,7 +50,7 @@ namespace Insta_DM_Bot_server_wpf
         private void TimerInitialize()
         {
             if (_timer != null) _timer.Dispose();
-            _timer = new Timer(9 * 60000);
+            _timer = new Timer(5 * 60000 * _targets.Count);
             _timer.Elapsed += TimerElapsed;
             _timer.Enabled = true;
             _timer.AutoReset = true;
@@ -79,55 +82,55 @@ namespace Insta_DM_Bot_server_wpf
 
         public bool Execute()
         {
-            Thread.Sleep(_waitTime);
-            var options = new ChromeOptions();
-            options.AddArgument(
-                "--user-agent=Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1");
-            _driver = new ChromeDriver(options);
-            _driver.Manage().Window.Size = new Size(516, 703);
-            // To get sessionid 
-            // _driver.Manage().Cookies.GetCookieNamed("sessionid").Value
-            // To set sessionid 
-            // _driver.Manage().Cookies.AddCookie(new Cookie("sessionid" ,session ));
-            TimerInitialize();
-            // _driver.Manage().Cookies.AddCookie(new Cookie("sessionid" ,session ));
-            if (!SignIn(_username, _password))
-            {
-                StartNewDriver(false);
-                return false;
-            }
             
-            if (isDead) return false;
-            if (!PrepareForSendDirects())
-            {
-                StartNewDriver(false);
-                return false;
-            }
+                Thread.Sleep(_waitTime);
+                var options = new ChromeOptions();
+                options.AddArgument(
+                    "--user-agent=Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1");
+                _driver = new ChromeDriver(options);
+                _driver.Manage().Window.Size = new Size(516, 703);
+                // To get sessionid 
+                // _driver.Manage().Cookies.GetCookieNamed("sessionid").Value
+                // To set sessionid 
+                // _driver.Manage().Cookies.AddCookie(new Cookie("sessionid" ,session ));
+                TimerInitialize();
+                if (!SignIn(_username, _password))
+                {
+                    StartNewDriver(false);
+                    return false;
+                }
 
-            if (isDead) return false;
+                if (isDead) return false;
+                if (!PrepareForSendDirects())
+                {
+                    StartNewDriver(false);
+                    return false;
+                }
 
-            if (!SendMessage())
-            {
-                StartNewDriver(false);
-                return false;
-            }
+                if (isDead) return false;
 
-            if (isDead) return false;
+                if (!SendMessage())
+                {
+                    StartNewDriver(false);
+                    return false;
+                }
 
-            _driver.Quit();
-            isDead = true;
-            Manager.Update(taskId , "200");
+                if (isDead) return false;
 
-            if (Manager.IsPaused) return _successful;
-            if (isDead) return false;
-            isDead = true;
-            Manager.FetchTask(false);
-            Thread.Sleep(5000);
-            if (Manager.Queue.Count > 0)
-            {
-                Manager.Queue.Dequeue().Execute();
-            }
+                _driver.Quit();
+                // isDead = true;
+                Manager.Update(taskId, "200");
 
+                if (Manager.IsPaused) return _successful;
+                if (isDead) return false;
+                isDead = true;
+                var fetch= Manager.FetchTask(false);
+                Task.WaitAll(fetch);
+                if (Manager.Queue.Count > 0)
+                {
+                    Manager.Queue.Dequeue().Execute();
+                }
+                
             return _successful;
         }
 
@@ -158,7 +161,8 @@ namespace Insta_DM_Bot_server_wpf
 
         private bool SignIn(string username, string password)
         {
-            
+            if (session.Length == 0)
+            {
             SignIn:
             try
             {
@@ -306,7 +310,21 @@ namespace Insta_DM_Bot_server_wpf
             }
 
             Manager.SubmitSession(_driver.Manage().Cookies.GetCookieNamed("sessionid").Value, taskId);
+            }else
+            {
+                try
+                {
+                    _driver.Navigate().GoToUrl("https://instagram.com");
+                    Thread.Sleep(5000);
+                    _driver.Manage().Cookies.AddCookie(new Cookie("sessionid" ,session ));
+                    Thread.Sleep(5000);
 
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                }
+            }
             return true;
         }
 
@@ -471,39 +489,17 @@ namespace Insta_DM_Bot_server_wpf
                 }
                 catch (Exception e)
                 {
-                    // try
-                    // {
-                    //     textField = _driver?.FindElement(By.XPath(
-                    //         "/html/body/div[1]/div/div/div/div[1]/div/div/div/div[1]/div[1]/section/div/div[2]/div/div/div[2]/div[2]/div/div[2]/div/div/div[2]/textarea"));
-                    // }
-                    // catch
-                    // {
-                    //     Debug.Log(e.Message);
-                    //     if (SomethingWentWrongTimes < 3)
-                    //     {
-                    //         Manager.FailedSending(_users[i], _username, _jobId);
-                    //         PrepareForSendDirects();
-                    //         SomethingWentWrongTimes++;
-                    //         continue;
-                    //     }
-                    //     else
-                    //     {
-                    //         errCode = ErrorCode.SWW;
-                    //         return false;
-                    //     }
-                    // }
                 }
 
                 try
                 {
-                    textField?.SendKeys(target.message);
+                    textField.SendKeys(target.message);
                     Thread.Sleep(1000);
-                    textField?.SendKeys(Keys.Enter);
+                    textField.SendKeys(Keys.Enter);
                     hasSuccsesfulDirect = true;
                     _tryTimes = 0;
                     failedTimes = 0;
                     Manager.ServerLog(target.uid, "200");
-                    TimerInitialize();
                     _userTemp.Add(target.username);
                 }
                 catch (Exception e)
@@ -512,20 +508,8 @@ namespace Insta_DM_Bot_server_wpf
                 }
 
                 Thread.Sleep(6000);
-                // try
-                // {
-                //     var randomScroll = new Random();
-                //     // var humanize = new Humanize(_driver, randomScroll.Next(7, 16));
-                //     // var HumanizeTask = Task.Run(humanize.Start);
-                //     // Task.WaitAll(HumanizeTask);
-                //     Thread.Sleep(randomScroll.Next(60000,24000));
-                // }
-                // catch (Exception e)
-                // {
-                //     Debug.Log(e.Message);
-                // }
 
-                Thread.Sleep(random.Next(Manager.WaitMin, Manager.WaitMax));
+                Thread.Sleep(target.Equals(_targets.Last()) ? 20000 : random.Next(Manager.WaitMin, Manager.WaitMax));
                 PrepareForSendDirects();
             }
 

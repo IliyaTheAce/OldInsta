@@ -16,7 +16,7 @@ namespace Insta_DM_Bot_server_wpf
         public static readonly Queue<ICommand> Queue = new Queue<ICommand>();
 
         public const int WaitMin = 60000;
-        public const int WaitMax = 540000;
+        public const int WaitMax = 7 * 60000;
         public static int DriverCount = 2;
         public static bool IsPaused = false;
         private const int NewWindowWaitTime = 60000;
@@ -49,7 +49,7 @@ namespace Insta_DM_Bot_server_wpf
             public string uid;
             public string username;
             public string password;
-            public string? session;
+            public string sess;
         }
 
         public class target
@@ -79,6 +79,8 @@ namespace Insta_DM_Bot_server_wpf
                         var taskId = fetchedJob.data.task.uid;
                         string user = fetchedJob.data.task.username;
                         string pass = fetchedJob.data.task.password;
+                        string session = fetchedJob.data.task.sess;
+
                         var targetsArray = new List<target>(fetchedJob.data.targets);
 
                         var waitTime = 7 * 60 * 1000;
@@ -88,7 +90,7 @@ namespace Insta_DM_Bot_server_wpf
                         }
 
                         if (waitTime < 0) waitTime = 0;
-                        var newUser = new User(taskId, user, pass, targetsArray, waitTime);
+                        var newUser = new User(taskId, user, pass, targetsArray, waitTime,session );
                         Queue.Enqueue(newUser);
                     }
                     else
@@ -100,7 +102,7 @@ namespace Insta_DM_Bot_server_wpf
             }
             catch (Exception e)
             {
-                Debug.Log(e.ToString());
+                MessageBox.Show(e.ToString());
             }
         }
 
@@ -227,8 +229,8 @@ namespace Insta_DM_Bot_server_wpf
 
             Dictionary<string, string> data = new Dictionary<string, string>
             {
-                { "uid", session },
-                { "session_id", workerId },
+                { "uid", workerId },
+                { "session_id",  session },
             };
 
 // Convert the data to JSON format
