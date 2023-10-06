@@ -17,6 +17,7 @@ namespace Insta_DM_Bot_server_wpf
         
         public MainWindow()
         {
+            // Manager.SubmitSession("xd171sI6EihmLhgFUB76zOvbMzQi3l47","123123");
             InitializeComponent();
             Manager.CheckRegistration();
 

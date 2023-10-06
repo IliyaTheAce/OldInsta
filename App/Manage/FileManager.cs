@@ -66,22 +66,21 @@ namespace Insta_DM_Bot_server_wpf
         
         public class Credential
         {
-            public bool registered;
-            public string location, ip, clientName;
+            public string serverId;
         }
 
-        public static void SaveCredential(string location, string ip, string clientName)
-        {
-            var credential = new Credential()
-                { registered = true, location = location, ip = ip, clientName = clientName };
-            File.WriteAllText("./App/Credential.json", JsonConvert.SerializeObject(credential));
-        }
+        // public static void SaveCredential(string location, string ip, string clientName)
+        // {
+        //     var credential = new Credential()
+        //         { registered = true, location = location, ip = ip, clientName = clientName };
+        //     File.WriteAllText("./App/Credential.json", JsonConvert.SerializeObject(credential));
+        // }
 
         public static Credential? ReadCredential()
         {
             if (!File.Exists("./App/Credential.json"))
             {
-                var credential = new Credential() { registered = false };
+                var credential = new Credential() { serverId = "0"};
                 File.WriteAllText("./App/Credential.json",
                     JsonConvert.SerializeObject(credential));
                 return credential;
