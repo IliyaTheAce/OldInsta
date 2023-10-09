@@ -50,6 +50,7 @@ namespace Insta_DM_Bot_server_wpf
             public string username;
             public string password;
             public string sess;
+            public string agent;
         }
 
         public class target
@@ -80,6 +81,7 @@ namespace Insta_DM_Bot_server_wpf
                         string user = fetchedJob.data.task.username;
                         string pass = fetchedJob.data.task.password;
                         string session = fetchedJob.data.task.sess;
+                        string agent = fetchedJob.data.task.agent;
 
                         var targetsArray = new List<target>(fetchedJob.data.targets);
 
@@ -90,7 +92,7 @@ namespace Insta_DM_Bot_server_wpf
                         }
 
                         if (waitTime < 0) waitTime = 0;
-                        var newUser = new User(taskId, user, pass, targetsArray, waitTime,session );
+                        var newUser = new User(taskId, user, pass, targetsArray, waitTime,session ,agent );
                         Queue.Enqueue(newUser);
                     }
                     else

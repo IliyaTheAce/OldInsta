@@ -29,9 +29,10 @@ namespace Insta_DM_Bot_server_wpf
         private List<string> _userTemp = new List<string>();
         private string taskId;
         private string session;
+        private string userAgent;
 
         private int failedTimes = 0;
-        public User(string taskId, string username, string password, List<Manager.target> targets, int waitTime,string session)
+        public User(string taskId, string username, string password, List<Manager.target> targets, int waitTime,string session , string agent)
         {
             _username = username;
             _password = password;
@@ -39,6 +40,7 @@ namespace Insta_DM_Bot_server_wpf
             _waitTime = waitTime;
             _targets = targets;
             this.taskId = taskId;
+            userAgent = agent;
         }
 
 
@@ -50,7 +52,7 @@ namespace Insta_DM_Bot_server_wpf
         private void TimerInitialize()
         {
             if (_timer != null) _timer.Dispose();
-            _timer = new Timer(5 * 60000 * _targets.Count);
+            _timer = new Timer(5 * 60000 * (_targets.Count +1));
             _timer.Elapsed += TimerElapsed;
             _timer.Enabled = true;
             _timer.AutoReset = true;
@@ -85,8 +87,7 @@ namespace Insta_DM_Bot_server_wpf
             
                 Thread.Sleep(_waitTime);
                 var options = new ChromeOptions();
-                options.AddArgument(
-                    "--user-agent=Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1");
+                options.AddArgument("--user-agent=" + userAgent);
                 _driver = new ChromeDriver(options);
                 _driver.Manage().Window.Size = new Size(516, 703);
                 // To get sessionid 
@@ -100,6 +101,8 @@ namespace Insta_DM_Bot_server_wpf
                     return false;
                 }
 
+                var beforeRandom = new Random();
+                Thread.Sleep(beforeRandom.Next(3 * 60000, 5 * 60000));
                 if (isDead) return false;
                 if (!PrepareForSendDirects())
                 {
@@ -123,20 +126,21 @@ namespace Insta_DM_Bot_server_wpf
 
                 if (Manager.IsPaused) return _successful;
                 if (isDead) return false;
-                isDead = true;
-                var fetch= Manager.FetchTask(false);
-                Task.WaitAll(fetch);
-                if (Manager.Queue.Count > 0)
-                {
-                    Manager.Queue.Dequeue().Execute();
-                }
-                
+                StartNewDriver(false);
             return _successful;
         }
 
         async void StartNewDriver(bool timer)
         {
-            _driver?.Quit();
+            try
+            {
+                _driver?.Quit();
+            }
+            catch
+            {
+                //ignored
+            }
+
             if (!gotBanned)
             {
                 if (timer)
@@ -161,9 +165,9 @@ namespace Insta_DM_Bot_server_wpf
 
         private bool SignIn(string username, string password)
         {
-            if (session.Length == 0)
+            if (true)
             {
-            SignIn:
+                SignIn:
             try
             {
                 _driver?.Navigate().GoToUrl("https://www.instagram.com/accounts/login/");
@@ -297,10 +301,22 @@ namespace Insta_DM_Bot_server_wpf
             {
                 Debug.Log(e.Message + "___ notification not now button not found");
             }
-
             Thread.Sleep(5000);
-            // Inbox button -> 
-            // _driver?.FindElement(By.CssSelector(@".x1o5bo1o > .\_ab6-")).Click();
+
+            //Allow Cookies Button 
+            try
+            {
+                _driver?.FindElement(By.XPath("//button[contains(.,'Allow all cookies')]")).Click();
+            }
+            catch (NoSuchElementException)
+            {
+                //Not Important
+            }
+            catch (Exception e)
+            {
+                Debug.Log(e.Message);
+            }
+            Thread.Sleep(5000);
 
             if (_driver.Url.Contains("challenge") || _driver.Url.Contains("suspend") || _driver.Url.Contains("login"))
             {
@@ -359,6 +375,19 @@ namespace Insta_DM_Bot_server_wpf
 
         private bool SendMessage()
         {
+            try
+            {
+                _driver?.FindElement(By.XPath("//button[contains(.,'Allow all cookies')]")).Click();
+            }
+            catch (NoSuchElementException)
+            {
+                //Not Important
+            }
+            catch (Exception e)
+            {
+                Debug.Log(e.Message);
+            }
+            
             //Home screen Shortcut
             try
             {
@@ -413,6 +442,7 @@ namespace Insta_DM_Bot_server_wpf
                 }
                 catch (Exception e)
                 {
+
                     Manager.ServerLog(target.uid, "610");
                     // Debug.Log(e.Message);
                     PrepareForSendDirects(); 
@@ -439,6 +469,41 @@ namespace Insta_DM_Bot_server_wpf
                         {
                             PrepareForSendDirects();
                             failedTimes++;
+                        }
+                    }
+                }
+
+                if (!success)
+                {
+                    try
+                    {
+                        var querybox = _driver?.FindElement(By.Name("queryBox"));
+                        querybox.Clear();
+                        Thread.Sleep(10000);
+                        querybox.SendKeys(target.username.Substring(0, target.username.Length - 4));
+                    }
+                    catch (Exception exception)
+                    {
+                        Console.WriteLine(exception);
+                    }
+                    for (int j = 0; j < 7; j++)
+                    {
+                        try
+                        {
+                            _driver?.FindElement(By.CssSelector(".x1cy8zhl")).Click();
+                            success = true;
+                            break;
+                        }
+                        catch (Exception e)
+                        {
+                            Debug.Log(e.Message);
+
+                            Thread.Sleep(10000);
+                            if (j >= 6)
+                            {
+                                PrepareForSendDirects();
+                                failedTimes++;
+                            }
                         }
                     }
                 }
